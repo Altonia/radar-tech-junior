@@ -444,7 +444,8 @@ fetch("data.json").then(r => { if (!r.ok) throw new Error(r.status); return r.js
   $("#n-ent").textContent = fmt(DATA.length); $("#n-off").textContent = fmt(OFFRES.length);
   const fresh = OFFRES.filter(x => x._j !== null && x._j < 7).length;
   $("#pulse").innerHTML = `<span><b>${fmt(DATA.filter(d => d.lba).length)}</b> boîtes prennent des alternants</span>
-    <span><b>${fmt(fresh)}</b> offres de moins d'une semaine</span><span>Mis à jour le ${esc(META.maj)}</span>`;
+    <span><b>${fmt(fresh)}</b> offres de moins d'une semaine</span><span><b>${fmt(DATA.filter(d => d.w).length)}</b> avec leur site</span>`;
+  $("#maj-badge").textContent = `Données du ${META.maj}`;
   $("#foot").textContent = "Sources : base SIRENE (API Recherche d'entreprises), France Travail (offres et La Bonne Boîte), La Bonne Alternance, Adzuna, partenaires Odoo, Wikidata. « Site web » est vérifié par le SIREN affiché sur le site ; « Site (probable) » : le domaine colle au nom, sans preuve formelle.";
   bind(); refreshCounts();
   setView(location.hash === "#offres" ? "off" : location.hash === "#suivi" ? "suivi" : "ent");
