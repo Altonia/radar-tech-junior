@@ -260,3 +260,32 @@ h1 { font: 800 clamp(72px, 13vw, 150px)/0.88 var(--f-hero); letter-spacing: -0.0
 .cluster { position: absolute; z-index: 0; right: max(-60px, calc((100vw - 1240px) / 2 - 60px)); top: 50%; transform: translateY(-50%);
   width: min(520px, 60vw); height: min(520px, 60vw); pointer-events: none; opacity: .9; }
 @media (max-width: 900px) { .count { font-size: 21px; } .cluster { right: -120px; top: 24%; width: 340px; height: 340px; opacity: .55; } }
+
+/* ---------- fiche en grande fenêtre centrée ---------- */
+.drawer { top: 50%; left: 50%; right: auto; bottom: auto; transform: translate(-50%, -50%); width: min(920px, calc(100vw - 32px)); max-height: calc(100vh - 48px);
+  border: 1px solid var(--line-2); border-radius: 20px; padding: 30px 32px 30px; background: linear-gradient(180deg, var(--drawer-top), var(--bg-2) 30%); }
+.close-drawer { top: 14px; right: 14px; }
+.d-head { padding-right: 36px; }
+.d-kicker { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 12px; }
+.d-titlerow { display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 16px; align-items: center; margin-bottom: 18px; }
+.d-titlerow .score { width: 56px; height: 56px; }
+.d-title { margin: 0 0 4px; font-size: clamp(24px, 3.4vw, 32px); overflow-wrap: anywhere; }
+.d-meta { margin: 0; }
+.d-actions { margin-bottom: 8px; }
+.d-actions .btn { white-space: normal; text-align: left; }
+.d-grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 0 32px; margin-top: 10px; }
+.d-side { border-left: 1px solid var(--line); padding-left: 28px; }
+.d-side .d-sec:first-child, .d-main .d-sec:first-child { border-top: 0; }
+.d-contacts { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 10px; }
+.d-contacts li { display: grid; gap: 1px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); }
+.d-contacts b { font-weight: 600; }
+.d-contacts span { color: var(--fg-3); font-size: 13px; }
+.mini-links { display: flex; gap: 14px; margin-top: 4px; font-size: 13.5px; }
+.mini-links a { font-weight: 500; }
+@media (max-width: 760px) {
+  .drawer { top: 0; left: 0; transform: none; width: 100vw; max-height: none; height: 100%; border-radius: 0; border: 0;
+    padding: calc(22px + env(safe-area-inset-top, 0px)) 18px calc(30px + env(safe-area-inset-bottom, 0px)); }
+  .d-grid { grid-template-columns: minmax(0, 1fr); }
+  .d-side { border-left: 0; padding-left: 0; }
+  .d-side .d-sec:first-child { border-top: 1px solid var(--line); }
+}

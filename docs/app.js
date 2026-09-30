@@ -41,10 +41,11 @@ const dateFr = iso => iso ? new Date(iso).toLocaleDateString("fr-FR", { day: "nu
 const g = q => `https://www.google.com/search?q=${encodeURIComponent(q)}`;
 const contactOf = d => {
   const boite = `"${clean(d.n)}"`, dg = (d.dg || [])[0];
-  if (size(d.tr) === "l") return { url: g(`site:linkedin.com/in ${boite} ("talent acquisition" OR recruteur OR recruteuse OR "chargé de recrutement")`), label: "les recruteurs" };
-  if (dg) return { url: g(`site:linkedin.com/in "${dg[0]}" ${boite}`), label: dg[0], role: dg[1] };
-  return { url: g(`site:linkedin.com/in ${boite} (CTO OR fondateur OR fondatrice OR dirigeant OR "directeur technique")`), label: "CTO et fondateurs" };
+  if (size(d.tr) === "l") return { url: g(`${boite} (recruteur OR recruteuse OR "talent acquisition" OR "chargé de recrutement") linkedin`), label: "ses recruteurs" };
+  if (dg) return { url: g(`"${dg[0]}" ${boite}`), label: dg[0], role: dg[1] };
+  return { url: g(`${boite} (CTO OR fondateur OR fondatrice OR dirigeant OR "directeur technique") linkedin`), label: "ses dirigeants" };
 };
+const liPeople = q => `https://www.linkedin.com/search/results/people/?keywords=${encodeURIComponent(q)}`;
 const contactUrl = d => contactOf(d).url;
 
 /* ---------- suivi : navigateur, synchronisé avec Supabase une fois connecté ---------- */
@@ -250,7 +251,6 @@ function rowEnt(d) {
     </button>
     <div class="r-act">
       ${d.w ? `<a class="btn small c-blue" href="${esc(d.w)}" target="_blank" rel="noopener">${IC.site}Site</a>` : ""}
-      ${d.lba ? `<a class="btn small c-amber" href="${esc(d.lba)}" target="_blank" rel="noopener">${IC.alt}Alternance</a>` : ""}
       <a class="btn small c-violet" href="${contactUrl(d)}" target="_blank" rel="noopener" title="Chercher ${esc(contactOf(d).label)} sur LinkedIn">${IC.contact}Contact</a>
       ${stSelect(k, nomAff(d.n))}
     </div></li>`;
@@ -334,50 +334,71 @@ function suiviBlock(k, label) {
     ${Suivi.client && !Suivi.user ? `<p class="hint">Connecte-toi pour retrouver ton suivi sur ton téléphone et ton ordi.</p>` : ""}</section>`;
 }
 function detailEnt(d) {
-  const c = clean(d.n), q = encodeURIComponent(c), al = alias(d.n);
+  const c = clean(d.n), q = encodeURIComponent(c), al = alias(d.n), ct = contactOf(d);
   const sigs = [d.lba && `<span class="sig warm">Prend des alternants : elle en recrute régulièrement, d'après La Bonne Alternance.</span>`,
     d.pot && `<span class="sig go">Grosses chances d'embauche dans ces métiers, d'après La Bonne Boîte (France Travail).</span>`,
     ...(d.t || []).filter(t => !/alternants|potentiel/i.test(t)).map(t => `<span class="sig muted">${esc(t)}</span>`)].filter(Boolean);
-  return `<p class="d-kicker"><span class="tag t-${SEG_COL[d.s] || "slate"}">${esc(d.s)}</span></p><h2 class="d-title">${esc(nomAff(d.n))}</h2>
-    <p class="d-meta">${esc([d.v && `${tc(d.v)}${d.c ? ` (${d.c})` : ""}`, d.r, d.e !== "?" && `${d.e} salariés`].filter(Boolean).join(" · "))}${al ? `<br>Aussi connue sous : ${esc(al)}` : ""}</p>
-    <div class="d-score"><span class="score" style="--s:${d.sc}" data-n="${d.sc}"></span><span>Score de pertinence sur 100 : type de boîte, taille et signaux de recrutement.</span></div>
-    <div class="d-actions">
-      ${d.w ? `<a class="btn primary" href="${esc(d.w)}" target="_blank" rel="noopener">${IC.site}${d.wp ? "Site (probable)" : "Site web"}</a>` : ""}
-      ${d.lba ? `<a class="btn c-amber" href="${esc(d.lba)}" target="_blank" rel="noopener">${IC.alt}Candidater en alternance</a>` : ""}
-      <a class="btn c-violet" href="${contactUrl(d)}" target="_blank" rel="noopener">${IC.contact}${(() => { const c = contactOf(d); return c.role ? `Trouver ${esc(c.label)} (${esc(c.role.toLowerCase())})` : `Trouver ${esc(c.label)}`; })()}</a>
-    </div>
-    ${suiviBlock("ent:" + d.id, nomAff(d.n))}
-    ${sigs.length ? `<section class="d-sec"><h3>Pourquoi elle est là</h3><div class="d-sigs">${sigs.join("")}</div></section>` : ""}
-    ${d._o.length ? `<section class="d-sec"><h3>Ses offres du moment (${d._o.length})</h3><ul class="d-offres">${d._o.map(x =>
-      `<li><a href="#" data-open="off:${x.id}">${esc(tc(x.t))}</a><span>${esc([contratLabel(x), x.l, ago(x._j)].filter(Boolean).join(" · "))}</span></li>`).join("")}</ul></section>` : ""}
-    <section class="d-sec"><h3>Infos</h3><dl class="facts">
-      ${(d.dg || []).length ? `<dt>Dirigeant${d.dg.length > 1 ? "s" : ""}</dt><dd>${d.dg.map(([n, r]) => `<a href="${g(`site:linkedin.com/in "${n}" "${clean(d.n)}"`)}" target="_blank" rel="noopener">${esc(n)}</a>${r ? ` (${esc(r.toLowerCase())})` : ""}`).join("<br>")}</dd>` : ""}
-      <dt>Activité</dt><dd>${esc(d.a || "Non précisée")}</dd>
-      ${d.y ? `<dt>Création</dt><dd>${d.y}</dd>` : ""}
-      ${d.si ? `<dt>SIREN</dt><dd>${d.si}</dd>` : ""}
-      ${d.w ? `<dt>Site</dt><dd>${d.wp ? "Domaine qui colle au nom, pas vérifié à 100 %" : "Vérifié (son SIREN est sur le site)"}</dd>` : ""}</dl></section>
-    <section class="d-sec"><h3>Creuser</h3><div class="links">
-      <a href="https://www.linkedin.com/search/results/companies/?keywords=${q}" target="_blank" rel="noopener">Sa page LinkedIn</a>
-      <a href="https://www.welcometothejungle.com/fr/jobs?query=${q}" target="_blank" rel="noopener">Ses offres sur Welcome to the Jungle</a>
-      <a href="https://www.google.com/search?q=${q}+${encodeURIComponent(d.v || "")}" target="_blank" rel="noopener">La chercher sur Google</a>
-      ${d.si ? `<a href="https://annuaire-entreprises.data.gouv.fr/entreprise/${d.si}" target="_blank" rel="noopener">Sa fiche officielle</a>` : ""}</div></section>`;
+  const contacts = (d.dg || []).map(([n, r]) => `<li><b>${esc(n)}</b><span>${esc((r || "").toLowerCase())}</span>
+      <span class="mini-links"><a href="${liPeople(`${n} ${c}`)}" target="_blank" rel="noopener">LinkedIn</a><a href="${g(`"${n}" "${c}"`)}" target="_blank" rel="noopener">Google</a></span></li>`).join("");
+  return `<header class="d-head">
+      <p class="d-kicker"><span class="tag t-${SEG_COL[d.s] || "slate"}">${esc(d.s)}</span>${d.lba ? `<span class="tag t-amber">Prend des alternants</span>` : ""}${d.pot ? `<span class="tag t-green">Recrute</span>` : ""}</p>
+      <div class="d-titlerow"><span class="score" style="--s:${d.sc}" data-n="${d.sc}" title="Score de pertinence sur 100"></span>
+        <div><h2 class="d-title">${esc(nomAff(d.n))}</h2>
+        <p class="d-meta">${esc([d.v && `${tc(d.v)}${d.c ? ` (${d.c})` : ""}`, d.r, d.e !== "?" && `${d.e} salariés`].filter(Boolean).join(" · "))}${al ? `<br>Aussi connue sous : ${esc(al)}` : ""}</p></div></div>
+      <div class="d-actions">
+        ${d.w ? `<a class="btn primary" href="${esc(d.w)}" target="_blank" rel="noopener">${IC.site}${d.wp ? "Site (probable)" : "Site web"}</a>` : ""}
+        <a class="btn c-violet" href="${ct.url}" target="_blank" rel="noopener">${IC.contact}${ct.role ? "Contacter le dirigeant" : `Trouver ${esc(ct.label)}`}</a>
+        <a class="btn ghost" href="https://www.linkedin.com/search/results/companies/?keywords=${q}" target="_blank" rel="noopener">LinkedIn</a>
+      </div>
+    </header>
+    <div class="d-grid">
+      <div class="d-main">
+        ${d._o.length ? `<section class="d-sec"><h3>Ses offres du moment (${d._o.length})</h3><ul class="d-offres">${d._o.map(x =>
+          `<li><a href="#" data-open="off:${x.id}">${esc(tc(x.t))}</a><span>${esc([contratLabel(x), x.l, ago(x._j)].filter(Boolean).join(" · "))}</span></li>`).join("")}</ul></section>` : ""}
+        ${sigs.length ? `<section class="d-sec"><h3>Pourquoi elle est là</h3><div class="d-sigs">${sigs.join("")}</div></section>` : ""}
+        <section class="d-sec"><h3>Infos</h3><dl class="facts">
+          <dt>Activité</dt><dd>${esc(d.a || "Non précisée")}</dd>
+          ${d.y ? `<dt>Création</dt><dd>${d.y}</dd>` : ""}
+          ${d.si ? `<dt>SIREN</dt><dd>${d.si}</dd>` : ""}
+          ${d.w ? `<dt>Site</dt><dd>${esc(domain(d.w))} · ${d.wp ? "domaine qui colle au nom, pas vérifié à 100 %" : "vérifié (son SIREN est sur le site)"}</dd>` : `<dt>Site</dt><dd>Pas trouvé : <a href="https://www.google.com/search?q=${q}+${encodeURIComponent(d.v || "")}" target="_blank" rel="noopener">le chercher sur Google</a></dd>`}</dl></section>
+        <section class="d-sec"><h3>Creuser</h3><div class="links">
+          <a href="https://www.welcometothejungle.com/fr/jobs?query=${q}" target="_blank" rel="noopener">Ses offres sur Welcome to the Jungle</a>
+          <a href="https://www.google.com/search?q=${q}+${encodeURIComponent(d.v || "")}" target="_blank" rel="noopener">La chercher sur Google</a>
+          ${d.si ? `<a href="https://annuaire-entreprises.data.gouv.fr/entreprise/${d.si}" target="_blank" rel="noopener">Sa fiche officielle</a>` : ""}</div></section>
+      </div>
+      <aside class="d-side">
+        ${suiviBlock("ent:" + d.id, nomAff(d.n))}
+        <section class="d-sec"><h3>Qui contacter</h3>
+          ${contacts ? `<ul class="d-contacts">${contacts}</ul>` : `<p class="hint">Pas de dirigeant connu dans le registre.</p>`}
+          <div class="links">
+            <a href="${liPeople(`${c} ${size(d.tr) === "l" ? "recrutement" : "CTO"}`)}" target="_blank" rel="noopener">${size(d.tr) === "l" ? "Ses recruteurs" : "Son équipe tech"} sur LinkedIn</a>
+          </div>
+          <p class="hint">LinkedIn demande d'être connecté. Si la personne n'y est pas, le lien Google cherche partout ailleurs.</p></section>
+      </aside>
+    </div>`;
 }
 function detailOff(x) {
   const ent = ENT_OF_OFF.get(x.id);
-  return `<p class="d-kicker"><span class="tag t-${FAM_COL[x.f] || "slate"}">${esc(x.f)}</span></p><h2 class="d-title">${esc(tc(x.t))}</h2>
-    <p class="d-meta">${esc([x.e ? nomAff(x.e) : "Entreprise non précisée", x.l || x.r].filter(Boolean).join(" · "))}${x.cab ? " · via un cabinet" : ""}</p>
-    <div class="d-actions">
-      <a class="btn primary" href="${esc(x.u)}" target="_blank" rel="noopener">${IC.offre}Voir l'offre</a>
-      ${x.w ? `<a class="btn c-violet" href="${esc(x.w)}" target="_blank" rel="noopener">${IC.site}Site de la boîte</a>` : ""}
-      ${ent ? `<button class="btn c-cyan" data-open="ent:${ent.id}">${IC.fiche}Fiche de la boîte</button>` : ""}
-    </div>
-    ${suiviBlock("off:" + x.id, labelOf("off:" + x.id))}
-    <section class="d-sec"><h3>Infos</h3><dl class="facts">
-      <dt>Contrat</dt><dd>${esc(contratLabel(x))}</dd>
-      <dt>Publiée</dt><dd>${x.d ? `${new Date(x.d).toLocaleDateString("fr-FR")} (${ago(x._j)})` : "Date inconnue"}</dd>
-      <dt>Région</dt><dd>${esc(x.r)}</dd>
-      <dt>Source</dt><dd>${esc(x.src)}</dd></dl>
-      ${x.src === "Adzuna" ? `<p class="hint">Adzuna reprend des offres publiées ailleurs : si tu peux, retrouve-la sur le site carrières de la boîte.</p>` : ""}</section>`;
+  return `<header class="d-head">
+      <p class="d-kicker"><span class="tag t-${FAM_COL[x.f] || "slate"}">${esc(x.f)}</span><span class="tag t-${x.al ? "amber" : "slate"}">${esc(contratLabel(x))}</span>
+        ${x._j !== null ? `<span class="tag t-${x._j < 7 ? "green" : "slate"}">${ago(x._j)}</span>` : ""}</p>
+      <h2 class="d-title">${esc(tc(x.t))}</h2>
+      <p class="d-meta">${esc([x.e ? nomAff(x.e) : "Entreprise non précisée", x.l || x.r].filter(Boolean).join(" · "))}${x.cab ? " · via un cabinet" : ""}</p>
+      <div class="d-actions">
+        <a class="btn primary" href="${esc(x.u)}" target="_blank" rel="noopener">${IC.offre}Voir l'offre</a>
+        ${x.w ? `<a class="btn c-violet" href="${esc(x.w)}" target="_blank" rel="noopener">${IC.site}Site de la boîte</a>` : ""}
+        ${ent ? `<button class="btn c-cyan" data-open="ent:${ent.id}">${IC.fiche}Fiche de la boîte</button>` : ""}
+      </div>
+    </header>
+    <div class="d-grid">
+      <div class="d-main"><section class="d-sec"><h3>Infos</h3><dl class="facts">
+        <dt>Contrat</dt><dd>${esc(contratLabel(x))}</dd>
+        <dt>Publiée</dt><dd>${x.d ? `${new Date(x.d).toLocaleDateString("fr-FR")} (${ago(x._j)})` : "Date inconnue"}</dd>
+        <dt>Région</dt><dd>${esc(x.r)}</dd>
+        <dt>Source</dt><dd>${esc(x.src)}</dd></dl>
+        ${x.src === "Adzuna" ? `<p class="hint">Adzuna reprend des offres publiées ailleurs : si tu peux, retrouve-la sur le site carrières de la boîte.</p>` : ""}</section></div>
+      <aside class="d-side">${suiviBlock("off:" + x.id, labelOf("off:" + x.id))}</aside>
+    </div>`;
 }
 function openItem(k, keepScroll) {
   const [t, id] = [k.slice(0, 3), k.slice(4)];

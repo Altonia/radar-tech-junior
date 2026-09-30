@@ -225,7 +225,9 @@ if __name__ == "__main__":
             s += 3; r["tags"] = r["tags"] + ["Jeune pousse"]
         r["score"] = min(100, s + s_off)
         s_ent = s - taille_pts(r["tranche"]) + taille_ent(r["tranche"])
-        r["score_ent"] = max(0, min(100, round(s_ent * 100 / 67)))  # page entreprises : sans les offres, sur 100
+        # une boîte dont on a le site est bien plus facile à contacter : elle passe devant
+        s_ent += 10 if r.get("site_niveau") == "verifie" else 6 if r.get("site") else 0
+        r["score_ent"] = max(0, min(100, round(s_ent * 100 / 77)))  # page entreprises : sans les offres, sur 100
     rows.sort(key=lambda r: -r["score"])
     json.dump(rows, open(D("annuaire.json"), "w"), ensure_ascii=False)
     rattachees = {o["id"] for r in rows for o in r["offres"]}

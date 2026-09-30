@@ -1,5 +1,5 @@
 """Génère le site GitHub Pages (docs/data.json) et l'Excel (docs/m13.xlsx)."""
-import json, os, datetime, urllib.parse
+import json, os, re, datetime, urllib.parse
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment
 from openpyxl.utils import get_column_letter
@@ -33,7 +33,15 @@ for i, r in enumerate(rows):
     if r["site"]: d["w"] = q(r["site"]); d["wp"] = r.get("site_niveau") == "probable"
     if r.get("lba") and r["lba"].get("url"): d["lba"] = q(r["lba"]["url"])
     if r["lbb"]: d["pot"] = 1
-    dg = [[f'{x["prenom"]} {x["nom"]}'.strip(), x["role"]] for x in (r.get("dirigeants") or [])[:2]]
+    # vrais dirigeants opérationnels seulement (pas les commissaires aux comptes, administrateurs, liquidateurs…)
+    def rang(role):
+        rl = role.lower()
+        if re.search(r"commissaire|liquidat|membre du conseil|contr[ôo]leur|^administrateur$|^autre$|^membre$", rl) or not rl: return None
+        for i, k in enumerate(["directeur général", "président", "gérant", "directeur général délégué", "directoire", "dirigeant", "pouvoir d’engager"]):
+            if k in rl: return i
+        return None
+    dg = sorted(((rang(x["role"]), x) for x in (r.get("dirigeants") or [])), key=lambda t: 99 if t[0] is None else t[0])
+    dg = [[f'{x["prenom"]} {x["nom"]}'.strip(), x["role"]] for rk, x in dg if rk is not None][:2]
     if dg: d["dg"] = dg
     if r["offres"]: d["o"] = [str(x["id"]) for x in r["offres"]]
     ents.append(d)
