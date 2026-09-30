@@ -37,7 +37,15 @@ const tc = s => {
 const nomAff = n => tc(clean(n)) || tc(n);
 const alias = n => { const m = [...n.matchAll(/\(([^)]*)\)/g)].map(x => x[1].trim()).filter(x => x && x.toLowerCase() !== clean(n).toLowerCase()); return m.length ? tc(m.join(", ")) : ""; };
 const dateFr = iso => iso ? new Date(iso).toLocaleDateString("fr-FR", { day: "numeric", month: "short" }) : "";
-const contactUrl = d => `https://www.linkedin.com/search/results/people/?keywords=${encodeURIComponent(clean(d.n) + (size(d.tr) === "l" ? " recrutement" : " CTO OR fondateur OR dirigeant"))}`;
+// contact : le dirigeant s'il est connu (petites et moyennes boîtes), les recruteurs pour les grosses, sinon CTO/fondateurs de CETTE boîte
+const g = q => `https://www.google.com/search?q=${encodeURIComponent(q)}`;
+const contactOf = d => {
+  const boite = `"${clean(d.n)}"`, dg = (d.dg || [])[0];
+  if (size(d.tr) === "l") return { url: g(`site:linkedin.com/in ${boite} ("talent acquisition" OR recruteur OR recruteuse OR "chargé de recrutement")`), label: "les recruteurs" };
+  if (dg) return { url: g(`site:linkedin.com/in "${dg[0]}" ${boite}`), label: dg[0], role: dg[1] };
+  return { url: g(`site:linkedin.com/in ${boite} (CTO OR fondateur OR fondatrice OR dirigeant OR "directeur technique")`), label: "CTO et fondateurs" };
+};
+const contactUrl = d => contactOf(d).url;
 
 /* ---------- suivi : navigateur, synchronisé avec Supabase une fois connecté ---------- */
 const Suivi = {
@@ -233,9 +241,9 @@ function rowEnt(d) {
       <span class="r-tags">${tags}</span>
     </button>
     <div class="r-act">
-      ${d.w ? `<a class="btn small c-blue" href="${esc(d.w)}" target="_blank" rel="noopener">Site ↗</a>` : ""}
-      ${d.lba ? `<a class="btn small c-amber" href="${esc(d.lba)}" target="_blank" rel="noopener">Alternance ↗</a>` : ""}
-      <a class="btn small c-violet" href="${contactUrl(d)}" target="_blank" rel="noopener">Contact ↗</a>
+      ${d.w ? `<a class="btn small c-blue" href="${esc(d.w)}" target="_blank" rel="noopener">Site</a>` : ""}
+      ${d.lba ? `<a class="btn small c-amber" href="${esc(d.lba)}" target="_blank" rel="noopener">Alternance</a>` : ""}
+      <a class="btn small c-violet" href="${contactUrl(d)}" target="_blank" rel="noopener" title="Chercher ${esc(contactOf(d).label)} sur LinkedIn">Contact</a>
       ${stSelect(k, nomAff(d.n))}
     </div></li>`;
 }
@@ -250,8 +258,8 @@ function rowOff(x) {
       <span class="r-tags">${tags}</span>
     </button>
     <div class="r-act">
-      <a class="btn small c-blue" href="${esc(x.u)}" target="_blank" rel="noopener">Voir l'offre ↗</a>
-      ${x.w ? `<a class="btn small c-violet" href="${esc(x.w)}" target="_blank" rel="noopener">Site ↗</a>` : ""}
+      <a class="btn small c-blue" href="${esc(x.u)}" target="_blank" rel="noopener">Voir l'offre</a>
+      ${x.w ? `<a class="btn small c-violet" href="${esc(x.w)}" target="_blank" rel="noopener">Site</a>` : ""}
       ${stSelect(k, labelOf(k))}
     </div></li>`;
 }
@@ -326,15 +334,16 @@ function detailEnt(d) {
     <p class="d-meta">${esc([d.v && `${tc(d.v)}${d.c ? ` (${d.c})` : ""}`, d.r, d.e !== "?" && `${d.e} salariés`].filter(Boolean).join(" · "))}${al ? `<br>Aussi connue sous : ${esc(al)}` : ""}</p>
     <div class="d-score"><span class="score" style="--s:${d.sc}" data-n="${d.sc}"></span><span>Score de pertinence sur 100 : type de boîte, taille et signaux de recrutement.</span></div>
     <div class="d-actions">
-      ${d.w ? `<a class="btn primary" href="${esc(d.w)}" target="_blank" rel="noopener">${d.wp ? "Site (probable) ↗" : "Site web ↗"}</a>` : ""}
-      ${d.lba ? `<a class="btn c-amber" href="${esc(d.lba)}" target="_blank" rel="noopener">Candidater en alternance ↗</a>` : ""}
-      <a class="btn c-violet" href="${contactUrl(d)}" target="_blank" rel="noopener">Trouver un contact ↗</a>
+      ${d.w ? `<a class="btn primary" href="${esc(d.w)}" target="_blank" rel="noopener">${d.wp ? "Site (probable)" : "Site web"}</a>` : ""}
+      ${d.lba ? `<a class="btn c-amber" href="${esc(d.lba)}" target="_blank" rel="noopener">Candidater en alternance</a>` : ""}
+      <a class="btn c-violet" href="${contactUrl(d)}" target="_blank" rel="noopener">${(() => { const c = contactOf(d); return c.role ? `Trouver ${esc(c.label)} (${esc(c.role.toLowerCase())})` : `Trouver ${esc(c.label)}`; })()}</a>
     </div>
     ${suiviBlock("ent:" + d.id, nomAff(d.n))}
     ${sigs.length ? `<section class="d-sec"><h3>Pourquoi elle est là</h3><div class="d-sigs">${sigs.join("")}</div></section>` : ""}
     ${d._o.length ? `<section class="d-sec"><h3>Ses offres du moment (${d._o.length})</h3><ul class="d-offres">${d._o.map(x =>
       `<li><a href="#" data-open="off:${x.id}">${esc(tc(x.t))}</a><span>${esc([contratLabel(x), x.l, ago(x._j)].filter(Boolean).join(" · "))}</span></li>`).join("")}</ul></section>` : ""}
     <section class="d-sec"><h3>Infos</h3><dl class="facts">
+      ${(d.dg || []).length ? `<dt>Dirigeant${d.dg.length > 1 ? "s" : ""}</dt><dd>${d.dg.map(([n, r]) => `<a href="${g(`site:linkedin.com/in "${n}" "${clean(d.n)}"`)}" target="_blank" rel="noopener">${esc(n)}</a>${r ? ` (${esc(r.toLowerCase())})` : ""}`).join("<br>")}</dd>` : ""}
       <dt>Activité</dt><dd>${esc(d.a || "Non précisée")}</dd>
       ${d.y ? `<dt>Création</dt><dd>${d.y}</dd>` : ""}
       ${d.si ? `<dt>SIREN</dt><dd>${d.si}</dd>` : ""}
@@ -350,8 +359,8 @@ function detailOff(x) {
   return `<p class="d-kicker"><span class="tag t-${FAM_COL[x.f] || "slate"}">${esc(x.f)}</span></p><h2 class="d-title">${esc(tc(x.t))}</h2>
     <p class="d-meta">${esc([x.e ? nomAff(x.e) : "Entreprise non précisée", x.l || x.r].filter(Boolean).join(" · "))}${x.cab ? " · via un cabinet" : ""}</p>
     <div class="d-actions">
-      <a class="btn primary" href="${esc(x.u)}" target="_blank" rel="noopener">Voir l'offre ↗</a>
-      ${x.w ? `<a class="btn c-violet" href="${esc(x.w)}" target="_blank" rel="noopener">Site de la boîte ↗</a>` : ""}
+      <a class="btn primary" href="${esc(x.u)}" target="_blank" rel="noopener">Voir l'offre</a>
+      ${x.w ? `<a class="btn c-violet" href="${esc(x.w)}" target="_blank" rel="noopener">Site de la boîte</a>` : ""}
       ${ent ? `<button class="btn c-cyan" data-open="ent:${ent.id}">Fiche de la boîte</button>` : ""}
     </div>
     ${suiviBlock("off:" + x.id, labelOf("off:" + x.id))}
@@ -442,6 +451,23 @@ function bind() {
   document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("#drawer").hidden) closeItem(); });
   if (Suivi.client) bindLogin();
 }
+
+/* ---------- thème clair / sombre ---------- */
+const SUN = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6 6 6M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4"/></svg>`;
+const MOON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z"/></svg>`;
+const themeNow = () => document.documentElement.dataset.theme || (matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+function paintTheme() {
+  const t = themeNow();
+  $("#theme").innerHTML = t === "dark" ? SUN : MOON;
+  $("#theme").setAttribute("aria-label", t === "dark" ? "Passer en mode clair" : "Passer en mode sombre");
+}
+$("#theme").addEventListener("click", () => {
+  const t = themeNow() === "dark" ? "light" : "dark";
+  document.documentElement.dataset.theme = t; try { localStorage.setItem("theme", t); } catch {}
+  paintTheme();
+});
+matchMedia("(prefers-color-scheme: light)").addEventListener?.("change", paintTheme);
+paintTheme();
 
 /* ---------- démarrage ---------- */
 fetch("data.json").then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }).then(async j => {

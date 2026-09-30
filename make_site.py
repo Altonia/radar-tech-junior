@@ -33,6 +33,8 @@ for i, r in enumerate(rows):
     if r["site"]: d["w"] = q(r["site"]); d["wp"] = r.get("site_niveau") == "probable"
     if r.get("lba") and r["lba"].get("url"): d["lba"] = q(r["lba"]["url"])
     if r["lbb"]: d["pot"] = 1
+    dg = [[f'{x["prenom"]} {x["nom"]}'.strip(), x["role"]] for x in (r.get("dirigeants") or [])[:2]]
+    if dg: d["dg"] = dg
     if r["offres"]: d["o"] = [str(x["id"]) for x in r["offres"]]
     ents.append(d)
 ents.sort(key=lambda d: -d["sc"])

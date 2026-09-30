@@ -2,7 +2,9 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta name="theme-color" content="#07090e">
+<meta name="theme-color" content="#080a12" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f4f6fb" media="(prefers-color-scheme: light)">
+<script>try { const t = localStorage.getItem("theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch {}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Le Filon</title>
 <meta name="description" content="Les boîtes tech qui peuvent t'embaucher : alternance et CDI junior pour profils Bac+5, en Île-de-France, Pays de la Loire et Bretagne.">
@@ -27,6 +29,7 @@
         Tout en Excel
       </a>
       <div class="account" id="account"></div>
+      <button class="btn theme-btn" id="theme" aria-label="Changer de thème" title="Mode clair / sombre"></button>
     </div>
   </div>
 </header>

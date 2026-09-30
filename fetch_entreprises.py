@@ -68,6 +68,10 @@ def slim(r, region):
                             "ville": e.get("libelle_commune"), "lat": e.get("latitude"), "lon": e.get("longitude"),
                             "siege": e.get("est_siege")} for e in etabs],
         "finances": r.get("finances"),
+        # dirigeants personnes physiques : prénom usuel, nom et rôle seulement (pas de date de naissance)
+        "dirigeants": [{"prenom": (d.get("prenoms") or "").split()[0].title() if d.get("prenoms") else "",
+                        "nom": (d.get("nom") or "").title(), "role": d.get("qualite") or ""}
+                       for d in (r.get("dirigeants") or []) if d.get("type_dirigeant") == "personne physique" and d.get("nom")][:3],
     }
 
 

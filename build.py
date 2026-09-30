@@ -135,7 +135,7 @@ if __name__ == "__main__":
                      "ville": etab.get("ville") or e.get("siege_ville"), "cp": etab.get("cp") or e.get("siege_cp"),
                      "adresse": etab.get("adresse"), "nb_sites_region": len(e["etablissements"]),
                      "syntec": "1486" in (e.get("idcc") or []), "site": (odoo_keys.get(k) or {}).get("site"),
-                     "odoo": (odoo_keys.get(k) or {}).get("niveau"), "offres": mo,
+                     "odoo": (odoo_keys.get(k) or {}).get("niveau"), "offres": mo, "dirigeants": e.get("dirigeants") or [],
                      "lbb": lbb.pop((e["siren"], e["region"]), None),
                      "lba": lba_recr.get((e["siren"], e["region"]))})
 
