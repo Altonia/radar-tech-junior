@@ -10,6 +10,8 @@
   --f: "Geist", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
   --f-hero: "Unbounded", "Sora", "Arial Black", sans-serif;
   --f-disp: "Sora", "Geist", system-ui, sans-serif;
+  --f-race: "Chakra Petch", "Sora", system-ui, sans-serif;
+  --cut: 9px;
   --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
   --side: 250px; --drawer: 470px;
   --mix: #fff; --hover-bg: #182131; --row-hover: #1d2748; --drawer-top: #0f1522; --views-bg: rgba(8, 10, 18, .82); --badge-bg: rgba(14, 19, 29, .7);
@@ -54,7 +56,7 @@ button, select { font: inherit; color: inherit; }
   radial-gradient(closest-side at 95% 40%, rgba(244, 114, 182, .18), transparent); filter: blur(12px); opacity: var(--halo); }
 .hero-in { position: relative; z-index: 1; max-width: 1240px; margin: 0 auto; display: flex; justify-content: space-between; align-items: flex-end; gap: 24px 32px; flex-wrap: wrap; }
 .hero-text { max-width: 64ch; min-width: 0; }
-.badge-live { display: inline-flex; align-items: center; gap: 8px; margin: 0 0 18px; padding: 4px 12px 4px 10px; border: 1px solid var(--line-2); border-radius: 999px;
+.badge-live { display: flex; width: fit-content; align-items: center; gap: 8px; margin: 0 0 18px; padding: 4px 12px 4px 10px; border: 1px solid var(--line-2); border-radius: 999px;
   background: var(--badge-bg); font: 500 12.5px var(--mono); color: var(--fg-2); }
 .badge-live span { width: 7px; height: 7px; border-radius: 50%; background: var(--go); box-shadow: 0 0 0 3px rgba(52, 211, 153, .18); animation: pulse 2.4s ease-in-out infinite; }
 .badge-live em { font-style: normal; }
@@ -250,3 +252,62 @@ h1 { font: 800 clamp(44px, 8vw, 84px)/1 var(--f-hero); letter-spacing: -0.04em; 
 /* bouton de thème */
 .theme-btn { width: 40px; height: 40px; padding: 0; border-radius: 10px; }
 .theme-btn svg { width: 19px; height: 19px; }
+
+
+/* ================= Mode « sport » : typo de course, boutons biseautés, reflets ================= */
+h1 { position: relative; display: inline-block; transform: skewX(-9deg); transform-origin: left bottom; }
+h1 .speed { position: absolute; left: -60px; right: 40%; top: 18%; height: 64%; z-index: -1; pointer-events: none;
+  background: repeating-linear-gradient(180deg, transparent 0 9px, color-mix(in srgb, var(--blue) 45%, transparent) 9px 11px);
+  mask-image: linear-gradient(90deg, transparent, #000 40%, transparent); opacity: .6; }
+
+/* boutons : parallélogrammes pleins, texte italique majuscule, reflet au survol */
+.btn { position: relative; overflow: hidden; isolation: isolate; border: 0; border-radius: 0;
+  clip-path: polygon(var(--cut) 0, 100% 0, calc(100% - var(--cut)) 100%, 0 100%);
+  font: italic 700 13px/1 var(--f-race); text-transform: uppercase; letter-spacing: .07em;
+  padding: 11px 22px; box-shadow: none; background: var(--line-2); color: var(--fg); }
+.btn.small { font-size: 12px; padding: 9px 18px 9px 16px; --cut: 7px; }
+.btn::after { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, .45) 50%, transparent 65%); transform: translateX(-120%); transition: transform .5s ease; }
+.btn:hover::after { transform: translateX(120%); }
+.btn:hover { transform: translateY(-1px); filter: brightness(1.12) saturate(1.1); }
+.btn:active { transform: translateY(1px); filter: brightness(.95); }
+.btn .ic { width: 15px; height: 15px; transform: skewX(-9deg); }
+.btn.primary, .btn.excel { background: var(--grad); color: #fff; box-shadow: none; }
+.btn.excel { font-size: 14px; padding: 14px 28px; --cut: 12px; }
+.btn[class*="c-"] { color: #fff; border: 0; background: linear-gradient(100deg, var(--c), color-mix(in srgb, var(--c) 55%, #000)); }
+.btn[class*="c-"]:hover { color: #fff; background: linear-gradient(100deg, color-mix(in srgb, var(--c) 85%, #fff), var(--c)); box-shadow: none; }
+.btn.c-amber { color: #1a1204; } .btn.c-amber:hover { color: #1a1204; }
+.btn.c-cyan { color: #031418; } .btn.c-cyan:hover { color: #031418; }
+.btn.ghost { background: var(--panel-2); }
+.hero-actions .btn:not(.excel) { background: var(--line); }
+.hero-actions .btn:not(.excel):hover { background: var(--line-2); }
+.btn.ghost { background: var(--line); }
+.theme-btn { width: 46px; height: 42px; padding: 0; --cut: 8px; }
+.btn:focus-visible { outline: none; filter: brightness(1.2); box-shadow: inset 0 0 0 2px var(--fg); }
+
+/* menu Suivre : même silhouette que les boutons */
+.stsel { border: 0; border-radius: 0; clip-path: polygon(7px 0, 100% 0, calc(100% - 7px) 100%, 0 100%);
+  font: italic 700 12px var(--f-race); text-transform: uppercase; letter-spacing: .07em; padding: 9px 30px 9px 32px;
+  background-color: var(--line); color: var(--fg-2); }
+.stsel:hover { background-color: var(--line-2); color: var(--fg); }
+.stsel.on { background-color: color-mix(in srgb, var(--hl) 35%, var(--line)); color: var(--fg); }
+.stsel option { font: 500 14px var(--f); text-transform: none; letter-spacing: 0; }
+
+/* onglets et libellés en typo de course */
+.view { font: italic 700 15px var(--f-race); text-transform: uppercase; letter-spacing: .06em; border: 0; border-radius: 0;
+  clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%); padding: 9px 20px; }
+.view[aria-selected="true"] { background: var(--grad); color: #fff; }
+.view[aria-selected="true"] b { color: #fff; -webkit-text-fill-color: #fff; background: none; }
+.count { font: italic 700 24px var(--f-race); text-transform: uppercase; letter-spacing: .03em; }
+.side-head, .facet h3, .d-sec h3 { font-family: var(--f-race); font-style: italic; font-weight: 700; letter-spacing: .1em; }
+.step { font: italic 700 12px var(--f-race); text-transform: uppercase; letter-spacing: .06em; border-radius: 0;
+  clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%); border: 0; background: var(--line); padding: 8px 15px; }
+.step:hover { background: var(--line-2); }
+.step[aria-pressed="true"] { background: var(--hl); color: #fff; box-shadow: none; }
+.badge-live { font-family: var(--f-race); font-style: italic; letter-spacing: .06em; text-transform: uppercase; }
+
+/* score façon compte-tours */
+.score::after { font: italic 700 17px var(--f-race); }
+.score::before { content: ""; position: absolute; inset: -3px; border-radius: 50%; pointer-events: none;
+  background: conic-gradient(from 210deg, transparent 0 calc(var(--s) * 1% - 1.5%), var(--pink) calc(var(--s) * 1% - 1.5%) calc(var(--s) * 1%), transparent 0);
+  filter: blur(3px); opacity: .9; }
