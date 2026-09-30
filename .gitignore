@@ -1,0 +1,6 @@
+# clés d'API : ne jamais publier
+.env
+.venv/
+__pycache__/
+# données brutes intermédiaires (régénérées par les scripts)
+data/
