@@ -6,75 +6,78 @@
 <title>Radar Tech Junior</title>
 <meta name="description" content="Entreprises du numérique et offres junior ou alternance pour des profils Bac+5, en Île-de-France, Pays de la Loire et Bretagne.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@600;700;800&family=Public+Sans:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231e3fb4'/%3E%3Ccircle cx='16' cy='16' r='9' fill='none' stroke='white' stroke-width='2.5'/%3E%3Ccircle cx='16' cy='16' r='3' fill='white'/%3E%3C/svg%3E">
 </head>
 <body>
-<div class="wrap">
-  <header class="top">
-    <div>
-      <h1>Radar Tech Junior</h1>
-      <p>Entreprises du numérique et offres ouvertes aux débutants pour des profils Bac+5 (dev, IA et data, chef de projet, AMOA, consultant ERP, CRM ou e-commerce), en Île-de-France, Pays de la Loire et Bretagne. <span id="maj"></span></p>
+<header class="masthead">
+  <div class="masthead-in">
+    <div class="brand">
+      <span class="wordmark">Radar Tech Junior</span>
+      <span class="brand-sub" id="maj">Île-de-France · Pays de la Loire · Bretagne</span>
     </div>
-    <div class="top-actions">
-      <a class="btn" href="radar-tech-junior.xlsx" download>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3v12m0 0-4-4m4 4 4-4M5 21h14"/></svg>
-        Télécharger l'Excel
-      </a>
+    <div class="account" id="account"></div>
+  </div>
+  <nav class="views" role="tablist" aria-label="Vue">
+    <button role="tab" class="view" data-view="ent" aria-selected="true"><span>Entreprises</span><b id="n-ent"></b></button>
+    <button role="tab" class="view" data-view="off" aria-selected="false"><span>Offres</span><b id="n-off"></b></button>
+    <button role="tab" class="view" data-view="suivi" aria-selected="false"><span>Mon suivi</span><b id="n-suivi"></b></button>
+  </nav>
+</header>
+
+<div class="layout">
+  <aside class="side" id="side" aria-label="Filtres">
+    <div class="side-head">
+      <span>Filtres</span>
+      <button class="link" id="clear" hidden>Tout effacer</button>
+      <button class="icon-btn close-side" id="close-side" aria-label="Fermer les filtres">×</button>
     </div>
-  </header>
+    <label class="search">
+      <span class="sr">Rechercher</span>
+      <input type="search" id="q" autocomplete="off">
+    </label>
+    <div id="facets"></div>
+    <a class="excel" href="radar-tech-junior.xlsx" download>Télécharger tout en Excel</a>
+    <button class="btn primary only-mobile see-results" id="see-results">Voir les résultats</button>
+  </aside>
 
-  <details class="help" id="help-ent">
-    <summary>Comment s'en servir pour une candidature spontanée</summary>
-    <ul>
-      <li><b>Écrivez à une personne, pas à un formulaire.</b> Dans une structure de moins de 50 salariés, contactez directement le dirigeant ou le CTO : le bouton « Trouver un contact » ouvre la recherche LinkedIn correspondante.</li>
-      <li><b>Un message court</b> de 5 à 8 lignes : ce que vous savez faire, pourquoi cette entreprise, le contrat visé (alternance avec le rythme de l'école, ou CDI junior) et la date de début.</li>
-      <li><b>Alternance fin septembre :</b> ce n'est pas trop tard. Un contrat peut en général démarrer jusqu'à environ 3 mois après le début de la formation, et beaucoup d'écoles ont des rentrées en octobre, novembre ou janvier.</li>
-      <li><b>« Prend des alternants »</b> : l'entreprise recrute régulièrement des alternants, d'après La Bonne Alternance. <b>« Potentiel d'embauche »</b> : forte probabilité de recrutement dans ces métiers, d'après La Bonne Boîte (France Travail).</li>
-      <li><b>Postes fonctionnels :</b> les intégrateurs ERP, CRM et e-commerce forment beaucoup de juniors comme consultants. Filtrez sur ce type d'entreprise.</li>
-      <li>Les résultats sont triés par pertinence : type d'entreprise, taille et signaux de recrutement. C'est un ordre de tri, pas un avis sur l'entreprise.</li>
-    </ul>
-  </details>
-  <details class="help" id="help-off" hidden>
-    <summary>Bien lire ces offres</summary>
-    <ul>
-      <li><b>Postulez de préférence sur le site de l'entreprise.</b> Adzuna reprend des offres publiées ailleurs : quand le bouton « Site de l'entreprise » existe, cherchez-y la même offre dans la rubrique carrières.</li>
-      <li><b>Visez les offres récentes.</b> Une offre de plus de 2 semaines est peut-être déjà pourvue. Les offres de moins de 7 jours sont en vert.</li>
-      <li><b>ESN et cabinets de conseil</b> publient beaucoup d'offres, dont une partie sert à constituer un vivier de CV pour des missions pas encore signées. Ce sont de vrais recruteurs de juniors, mais le poste exact n'existe pas toujours.</li>
-      <li><b>Déjà retiré :</b> postes seniors, offres demandant 3 ans d'expérience ou plus, écoles qui publient de fausses offres pour recruter des étudiants, niveaux BTS ou Bac+3, missions freelance, doublons et offres dont le lien ne marche plus.</li>
-    </ul>
-  </details>
-
-  <div class="tabs" role="tablist" aria-label="Vue">
-    <button class="tab" role="tab" id="tab-ent" aria-selected="true">Entreprises <b id="n-ent"></b></button>
-    <button class="tab" role="tab" id="tab-off" aria-selected="false">Offres junior et alternance <b id="n-off"></b></button>
-  </div>
-
-  <div class="filters">
-    <div class="frow">
-      <input type="search" id="q" aria-label="Rechercher">
-      <select id="region" aria-label="Région"></select>
-      <select id="f1" aria-label="Filtre 1"></select>
-      <select id="f2" aria-label="Filtre 2"></select>
-      <button class="btn" id="more-toggle" aria-expanded="false">Plus de filtres</button>
+  <main class="results">
+    <div class="intro" id="intro"></div>
+    <div class="toolbar">
+      <button class="btn only-mobile" id="open-side">Filtres <b id="n-filters"></b></button>
+      <span class="count" id="count"></span>
+      <select id="tri" aria-label="Trier"></select>
     </div>
-    <div class="frow more" id="more-panel" hidden></div>
-    <div class="active" id="active"></div>
-  </div>
-
-  <div class="bar">
-    <span id="count"></span>
-    <span style="display:flex;gap:14px;flex-wrap:wrap;align-items:center">
-      <label><input type="checkbox" id="hide-done"> Masquer les « candidaté »</label>
-      <select id="tri" aria-label="Trier par"></select>
-    </span>
-  </div>
-
-  <div class="list" id="list"><p class="loading">Chargement des données…</p></div>
-  <button class="btn more-btn" id="more" hidden>Afficher plus de résultats</button>
-
-  <footer id="foot"></footer>
+    <ol class="rows" id="rows"><li class="state">Chargement des données…</li></ol>
+    <button class="btn more" id="more" hidden></button>
+    <footer class="foot" id="foot"></footer>
+  </main>
 </div>
+
+<div class="scrim" id="scrim" hidden></div>
+<aside class="drawer" id="drawer" aria-label="Détail" hidden>
+  <button class="icon-btn close-drawer" id="close-drawer" aria-label="Fermer">×</button>
+  <div id="detail"></div>
+</aside>
+
+<dialog class="login" id="login">
+  <form method="dialog" id="login-form">
+    <h2>Retrouver mon suivi partout</h2>
+    <p>Entrez votre email : vous recevrez un lien de connexion. Pas de mot de passe. Votre suivi est privé, personne d'autre ne le voit.</p>
+    <label for="email">Email</label>
+    <input type="email" id="email" required autocomplete="email" placeholder="prenom@exemple.fr">
+    <p class="msg" id="login-msg" role="status"></p>
+    <div class="login-actions">
+      <button type="button" class="btn" id="login-cancel">Annuler</button>
+      <button type="submit" class="btn primary" id="login-send">Recevoir le lien</button>
+    </div>
+  </form>
+</dialog>
+
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.min.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

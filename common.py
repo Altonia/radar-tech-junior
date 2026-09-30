@@ -40,7 +40,9 @@ def norm(s):
 EXCLU = re.compile(r"\b(technicien|tech support|support|helpdesk|help desk|hotline|hotliner|assistance utilisateur|"
                    r"administrateur (systeme|reseau)|admin sys|exploitation|pupitreur|cablage|cableur|installateur|"
                    r"deploiement de postes|proximite|n1|n2|niveau 1|niveau 2|maintenance informatique|"
-                   r"electricien|electrotechni|automaticien|commercial|vendeur|business developer|sales|teleconseil|"
+                   r"electricien|electrotechni|automaticien|commercial|vendeur|business develop\w*|biz dev|sales|teleconseil|"
+                   r"preparat\w*|magasinier|cariste|logisticien|inclusion|evenementiel\w*|travaux|chantier|immobili\w*|"
+                   r"juridique|recruteur|charge de recrutement|sols pollues|"
                    r"formateur|enseignant|professeur|stagiaire|stage)\b")
 SENIOR = re.compile(r"\b(senior|sr|confirme|experimente|expert|lead|principal|staff|head|directeur|director|"
                     r"manager|responsable|chief|cto|vp|architecte)\b")
@@ -60,6 +62,15 @@ FAMILLES = [
                       r"ingenieur (etudes? et )?developpement|integrateur web|mobile|ios|android|flutter)\b"),
 ]
 FAMILLES = [(n, re.compile(p)) for n, p in FAMILLES]
+
+
+# titre sans aucun indice « numérique » : on n'accepte pas la famille déduite du seul code métier
+IT_HINT = re.compile(r"\b(informati\w*|logiciel\w*|si|sirh|digital\w*|numerique\w*|data|web|dev\w*|erp|crm|it|systeme\w*|"
+                     r"application\w*|tech\w*|cloud|sap|ia|ai|ingenieur|software|fullstack|full stack|backend|frontend|mobile|"
+                     r"produit|product|agile|scrum|bi|cyber\w*|reseau\w*|e commerce|ecommerce|saas|amoa|moa|moe|infra\w*|edi|itsm|"
+                     r"tests?|recette|qa|monetique|pca|pra|messagerie|microsoft|365|securite|plm|mes|tibco|databricks|analytics|"
+                     r"donnees|integration|statisti\w*|sauvegarde|api|dsi|ged|salesforce|dynamics|odoo|oracle|sage|engineer\w*|"
+                     r"platform|decisionnel\w*|business intelligence|workplace|gmao|avant vente)\b")
 
 
 def classer_poste(titre, description=""):

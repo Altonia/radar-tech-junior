@@ -51,6 +51,11 @@ def segment(e, odoo_keys):
     return seg, tags
 
 
+def taille_ent(tr):
+    """Page entreprises : priorité aux PME, les grands groupes (1 000 salariés et plus) passent derrière."""
+    return {None: 4, "02": 8, "03": 8, "11": 12, "12": 12, "21": 10, "22": 10, "31": 4, "32": 4, "41": 0}.get(tr, -25)
+
+
 def taille_pts(tr):
     tr = tr or "00"
     return 4 if tr in ("02", "03") else 10 if tr in ("11", "12", "21", "22", "31") else 8 if tr >= "32" else 0
@@ -79,6 +84,19 @@ if __name__ == "__main__":
                                         or FREELANCE.search(norm(o.get("entreprise"))) or FREELANCE.search(norm(o["titre"]))
                                         or NIVEAU_BAS.search(norm(o["titre"])) or PUB_ECOLE.search(norm(o.get("description"))))]
     print("offres écartées (écoles, freelance, niveau < Bac+5) :", n0 - len(offres))
+    # contrôle a posteriori : titre hors cible, ou sans aucun indice numérique
+    from common import EXCLU, IT_HINT, classer_poste
+    n0 = len(offres)
+    def dans_la_cible(o):
+        t = norm(o["titre"])
+        if EXCLU.search(t): return False
+        fam = classer_poste(o["titre"])[0]
+        if (fam == "Chef de projet / PO" and o["source"] == "Adzuna"
+                and not re.search(r"\b(product owner|po|scrum|pmo|product manager)\b", t)):
+            return bool(IT_HINT.search(t))  # « chef de projet » seul sur Adzuna : marketing, BTP, retail…
+        return bool(fam or IT_HINT.search(t))
+    offres = [o for o in offres if dans_la_cible(o)]
+    print("offres écartées (hors cible) :", n0 - len(offres))
     # doublons (même titre, même entreprise, même région) : on garde la plus récente
     vus, uniq = set(), []
     for o in sorted(offres, key=lambda o: o.get("date") or "", reverse=True):
@@ -206,7 +224,8 @@ if __name__ == "__main__":
         if r["creation"] and this_year - int(r["creation"]) <= 4 and r["tranche"] and r["tranche"] >= "03":
             s += 3; r["tags"] = r["tags"] + ["Jeune pousse"]
         r["score"] = min(100, s + s_off)
-        r["score_ent"] = min(100, round(s * 100 / 65))  # page entreprises : sans les offres, ramené sur 100
+        s_ent = s - taille_pts(r["tranche"]) + taille_ent(r["tranche"])
+        r["score_ent"] = max(0, min(100, round(s_ent * 100 / 67)))  # page entreprises : sans les offres, sur 100
     rows.sort(key=lambda r: -r["score"])
     json.dump(rows, open(D("annuaire.json"), "w"), ensure_ascii=False)
     rattachees = {o["id"] for r in rows for o in r["offres"]}

@@ -29,6 +29,7 @@ def slugs(nom, sigle):
     if words:
         out += ["".join(words), "-".join(words)] if len(words) > 1 else [words[0]]
         if len(words) > 2: out.append("".join(words[:2]))
+    if len(words) >= 3: out.append("".join(w[0] for w in words))  # acronyme : Tata Consultancy Services → tcs
     if sigle: out.append(norm(sigle).replace(" ", ""))
     return [s for s in dict.fromkeys(out) if 2 < len(s) <= 40]
 
@@ -37,6 +38,7 @@ def find_site(r):
     """→ [url, "verifie"] (SIREN trouvé sur le site), [url, "probable"] (domaine = nom exact et nom dans le titre), ou None."""
     probable = None
     sls = slugs(r["nom"], r.get("sigle"))
+    nom_complet = " ".join(w for w in re.sub(FORMES, " ", norm(re.sub(r"\(.*?\)", " ", r["nom"]))).split())
     for sl in sls:
         for tld in ("fr", "com", "io", "ai"):
             try: socket.getaddrinfo(f"{sl}.{tld}", 443)
@@ -53,6 +55,8 @@ def find_site(r):
             if (not probable and sl == sls[0] and len(sl) >= 5 and sl.replace("-", "") in title.replace(" ", "")
                     and sl in host):
                 probable = [final, "probable"]
+            if not probable and nom_complet and len(nom_complet.split()) >= 2 and nom_complet in title:
+                probable = [final, "probable"]
     return probable
 
 
@@ -62,9 +66,10 @@ if __name__ == "__main__":
     done = json.load(open(OUT)) if os.path.exists(OUT) else {}
     todo, seen = [], set()
     for r in rows:  # déjà triés par score
-        if r["siren"] and not r["site"] and r["siren"] not in done and r["siren"] not in seen:
+        retry = "--retry" in sys.argv and done.get(r["siren"], 0) is None and (r.get("tranche") or "00") >= "12"
+        if r["siren"] and not r["site"] and (r["siren"] not in done or retry) and r["siren"] not in seen:
             seen.add(r["siren"]); todo.append({"siren": r["siren"], "nom": r["nom"], "sigle": (ents.get(r["siren"]) or {}).get("sigle")})
-    limit = int(sys.argv[1]) if len(sys.argv) > 1 else len(todo)
+    limit = int(next((a for a in sys.argv[1:] if a.isdigit()), len(todo)))
     todo = todo[:limit]
     print("à tester", len(todo), flush=True)
     socket.setdefaulttimeout(8)
