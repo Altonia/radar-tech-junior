@@ -216,8 +216,8 @@ function sorted(r) {
 // sélecteur de statut rapide, directement sur la ligne
 function stSelect(k, label) {
   const s = Suivi.get(k);
-  return `<select class="stsel${s ? " on" : ""}" data-k="${esc(k)}" data-label="${esc(label)}" aria-label="Statut de suivi">
-    <option value=""${s ? "" : " selected"}>${s ? "Retirer du suivi" : "+ Suivre"}</option>
+  return `<select class="stsel${s ? " on" : ""}"${s ? ` data-hl="${s.statut}"` : ""} data-k="${esc(k)}" data-label="${esc(label)}" aria-label="Statut de suivi">
+    <option value=""${s ? "" : " selected"}>${s ? "Retirer du suivi" : "Suivre"}</option>
     ${STATUTS.map(([v, l]) => `<option value="${v}"${s?.statut === v ? " selected" : ""}>${l}</option>`).join("")}</select>`;
 }
 const hlAttr = k => { const s = Suivi.get(k); return s ? ` data-hl="${s.statut}"` : ""; };
@@ -226,6 +226,14 @@ const SEG_COL = { "ESN / Conseil IT": "blue", "Dev / studio logiciel": "violet",
   "Intégrateur ERP / CRM / e-commerce": "amber", "Agence web / digitale": "green", "Agence com / pub": "rose", "Infra / hébergement": "slate",
   "Recruteur (DSI, autre secteur)": "teal", "Cabinet de recrutement": "slate" };
 const FAM_COL = { "Développement": "violet", "IA / Data": "pink", "Chef de projet / PO": "blue", "AMOA / Consultant SI": "cyan", "Consultant ERP / CRM": "amber", "E-commerce": "green" };
+// petites icônes des boutons (trait, couleur du texte)
+const IC = {
+  site: `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3Z"/></svg>`,
+  alt: `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="m2 9 10-5 10 5-10 5L2 9Z"/><path d="M6 11v5c0 1.5 2.7 3 6 3s6-1.5 6-3v-5M22 9v6"/></svg>`,
+  contact: `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.2-4 4.3-6 8-6s6.8 2 8 6"/></svg>`,
+  offre: `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M3 13h18"/></svg>`,
+  fiche: `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 21V5a2 2 0 0 1 2-2h8l6 6v12a0 0 0 0 1 0 0H6a2 2 0 0 1-2-2Z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></svg>`,
+};
 const domain = u => { try { return new URL(u).hostname.replace(/^www\./, ""); } catch { return ""; } };
 function rowEnt(d) {
   const k = "ent:" + d.id;
@@ -241,9 +249,9 @@ function rowEnt(d) {
       <span class="r-tags">${tags}</span>
     </button>
     <div class="r-act">
-      ${d.w ? `<a class="btn small c-blue" href="${esc(d.w)}" target="_blank" rel="noopener">Site</a>` : ""}
-      ${d.lba ? `<a class="btn small c-amber" href="${esc(d.lba)}" target="_blank" rel="noopener">Alternance</a>` : ""}
-      <a class="btn small c-violet" href="${contactUrl(d)}" target="_blank" rel="noopener" title="Chercher ${esc(contactOf(d).label)} sur LinkedIn">Contact</a>
+      ${d.w ? `<a class="btn small c-blue" href="${esc(d.w)}" target="_blank" rel="noopener">${IC.site}Site</a>` : ""}
+      ${d.lba ? `<a class="btn small c-amber" href="${esc(d.lba)}" target="_blank" rel="noopener">${IC.alt}Alternance</a>` : ""}
+      <a class="btn small c-violet" href="${contactUrl(d)}" target="_blank" rel="noopener" title="Chercher ${esc(contactOf(d).label)} sur LinkedIn">${IC.contact}Contact</a>
       ${stSelect(k, nomAff(d.n))}
     </div></li>`;
 }
@@ -258,8 +266,8 @@ function rowOff(x) {
       <span class="r-tags">${tags}</span>
     </button>
     <div class="r-act">
-      <a class="btn small c-blue" href="${esc(x.u)}" target="_blank" rel="noopener">Voir l'offre</a>
-      ${x.w ? `<a class="btn small c-violet" href="${esc(x.w)}" target="_blank" rel="noopener">Site</a>` : ""}
+      <a class="btn small c-blue" href="${esc(x.u)}" target="_blank" rel="noopener">${IC.offre}Voir l'offre</a>
+      ${x.w ? `<a class="btn small c-violet" href="${esc(x.w)}" target="_blank" rel="noopener">${IC.site}Site</a>` : ""}
       ${stSelect(k, labelOf(k))}
     </div></li>`;
 }
@@ -334,9 +342,9 @@ function detailEnt(d) {
     <p class="d-meta">${esc([d.v && `${tc(d.v)}${d.c ? ` (${d.c})` : ""}`, d.r, d.e !== "?" && `${d.e} salariés`].filter(Boolean).join(" · "))}${al ? `<br>Aussi connue sous : ${esc(al)}` : ""}</p>
     <div class="d-score"><span class="score" style="--s:${d.sc}" data-n="${d.sc}"></span><span>Score de pertinence sur 100 : type de boîte, taille et signaux de recrutement.</span></div>
     <div class="d-actions">
-      ${d.w ? `<a class="btn primary" href="${esc(d.w)}" target="_blank" rel="noopener">${d.wp ? "Site (probable)" : "Site web"}</a>` : ""}
-      ${d.lba ? `<a class="btn c-amber" href="${esc(d.lba)}" target="_blank" rel="noopener">Candidater en alternance</a>` : ""}
-      <a class="btn c-violet" href="${contactUrl(d)}" target="_blank" rel="noopener">${(() => { const c = contactOf(d); return c.role ? `Trouver ${esc(c.label)} (${esc(c.role.toLowerCase())})` : `Trouver ${esc(c.label)}`; })()}</a>
+      ${d.w ? `<a class="btn primary" href="${esc(d.w)}" target="_blank" rel="noopener">${IC.site}${d.wp ? "Site (probable)" : "Site web"}</a>` : ""}
+      ${d.lba ? `<a class="btn c-amber" href="${esc(d.lba)}" target="_blank" rel="noopener">${IC.alt}Candidater en alternance</a>` : ""}
+      <a class="btn c-violet" href="${contactUrl(d)}" target="_blank" rel="noopener">${IC.contact}${(() => { const c = contactOf(d); return c.role ? `Trouver ${esc(c.label)} (${esc(c.role.toLowerCase())})` : `Trouver ${esc(c.label)}`; })()}</a>
     </div>
     ${suiviBlock("ent:" + d.id, nomAff(d.n))}
     ${sigs.length ? `<section class="d-sec"><h3>Pourquoi elle est là</h3><div class="d-sigs">${sigs.join("")}</div></section>` : ""}
@@ -359,9 +367,9 @@ function detailOff(x) {
   return `<p class="d-kicker"><span class="tag t-${FAM_COL[x.f] || "slate"}">${esc(x.f)}</span></p><h2 class="d-title">${esc(tc(x.t))}</h2>
     <p class="d-meta">${esc([x.e ? nomAff(x.e) : "Entreprise non précisée", x.l || x.r].filter(Boolean).join(" · "))}${x.cab ? " · via un cabinet" : ""}</p>
     <div class="d-actions">
-      <a class="btn primary" href="${esc(x.u)}" target="_blank" rel="noopener">Voir l'offre</a>
-      ${x.w ? `<a class="btn c-violet" href="${esc(x.w)}" target="_blank" rel="noopener">Site de la boîte</a>` : ""}
-      ${ent ? `<button class="btn c-cyan" data-open="ent:${ent.id}">Fiche de la boîte</button>` : ""}
+      <a class="btn primary" href="${esc(x.u)}" target="_blank" rel="noopener">${IC.offre}Voir l'offre</a>
+      ${x.w ? `<a class="btn c-violet" href="${esc(x.w)}" target="_blank" rel="noopener">${IC.site}Site de la boîte</a>` : ""}
+      ${ent ? `<button class="btn c-cyan" data-open="ent:${ent.id}">${IC.fiche}Fiche de la boîte</button>` : ""}
     </div>
     ${suiviBlock("off:" + x.id, labelOf("off:" + x.id))}
     <section class="d-sec"><h3>Infos</h3><dl class="facts">
