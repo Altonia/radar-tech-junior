@@ -213,32 +213,45 @@ function stSelect(k, label) {
     ${STATUTS.map(([v, l]) => `<option value="${v}"${s?.statut === v ? " selected" : ""}>${l}</option>`).join("")}</select>`;
 }
 const hlAttr = k => { const s = Suivi.get(k); return s ? ` data-hl="${s.statut}"` : ""; };
+// couleur par type de boîte (classes .t-*)
+const SEG_COL = { "ESN / Conseil IT": "blue", "Dev / studio logiciel": "violet", "Éditeur de logiciels": "cyan", "IA / Data": "pink",
+  "Intégrateur ERP / CRM / e-commerce": "amber", "Agence web / digitale": "green", "Agence com / pub": "rose", "Infra / hébergement": "slate",
+  "Recruteur (DSI, autre secteur)": "teal", "Cabinet de recrutement": "slate" };
+const FAM_COL = { "Développement": "violet", "IA / Data": "pink", "Chef de projet / PO": "blue", "AMOA / Consultant SI": "cyan", "Consultant ERP / CRM": "amber", "E-commerce": "green" };
+const domain = u => { try { return new URL(u).hostname.replace(/^www\./, ""); } catch { return ""; } };
 function rowEnt(d) {
   const k = "ent:" + d.id;
-  const sigs = [d.lba && `<span class="sig warm">Alternants</span>`, d.pot && `<span class="sig go">Recrute</span>`,
-    d._o.length && `<span class="sig muted">${d._o.length} offre${d._o.length > 1 ? "s" : ""}</span>`].filter(Boolean).join("");
+  const tags = [`<span class="tag t-${SEG_COL[d.s] || "slate"}">${esc(d.s)}</span>`,
+    d.lba && `<span class="tag t-amber">Prend des alternants</span>`, d.pot && `<span class="tag t-green">Recrute</span>`,
+    d._o.length && `<span class="tag t-blue">${d._o.length} offre${d._o.length > 1 ? "s" : ""} en cours</span>`,
+    ...(d.t || []).filter(t => /jeune pousse/i.test(t)).map(() => `<span class="tag t-pink">Jeune pousse</span>`)].filter(Boolean).join("");
   return `<li class="row${S.cur === k ? " sel" : ""}"${hlAttr(k)} data-k="${k}">
     <button class="r-main" data-open="${k}">
       <span class="score" style="--s:${d.sc}" data-n="${d.sc}" title="Score de pertinence : ${d.sc} sur 100"></span>
       <span class="r-title">${esc(nomAff(d.n))}</span>
-      <span class="r-meta"><span>${esc([d.s, d.v && `${tc(d.v)}${d.c ? ` (${dept(d.c)})` : ""}`, d.e !== "?" && `${d.e} pers.`].filter(Boolean).join(" · "))}</span>${sigs}</span>
+      <span class="r-meta"><span>${esc([d.v && `${tc(d.v)}${d.c ? ` (${dept(d.c)})` : ""}`, d.e !== "?" && `${d.e} salariés`, d.w && domain(d.w)].filter(Boolean).join(" · "))}</span></span>
+      <span class="r-tags">${tags}</span>
     </button>
     <div class="r-act">
-      ${d.w ? `<a class="btn small ghost" href="${esc(d.w)}" target="_blank" rel="noopener">Site ↗</a>` : ""}
-      <a class="btn small ghost" href="${contactUrl(d)}" target="_blank" rel="noopener">Contact ↗</a>
+      ${d.w ? `<a class="btn small c-blue" href="${esc(d.w)}" target="_blank" rel="noopener">Site ↗</a>` : ""}
+      ${d.lba ? `<a class="btn small c-amber" href="${esc(d.lba)}" target="_blank" rel="noopener">Alternance ↗</a>` : ""}
+      <a class="btn small c-violet" href="${contactUrl(d)}" target="_blank" rel="noopener">Contact ↗</a>
       ${stSelect(k, nomAff(d.n))}
     </div></li>`;
 }
 function rowOff(x) {
   const k = "off:" + x.id;
+  const tags = [`<span class="tag t-${FAM_COL[x.f] || "slate"}">${esc(x.f)}</span>`, `<span class="tag t-${x.al ? "amber" : "slate"}">${esc(contratLabel(x))}</span>`,
+    x._j !== null && `<span class="tag t-${x._j < 7 ? "green" : "slate"}">${ago(x._j)}</span>`].filter(Boolean).join("");
   return `<li class="row o${S.cur === k ? " sel" : ""}"${hlAttr(k)} data-k="${k}">
     <button class="r-main" data-open="${k}">
       <span class="r-title">${esc(tc(x.t))}</span>
-      <span class="r-meta"><span>${esc([x.e ? nomAff(x.e) : "Entreprise non précisée", x.l || x.r, contratLabel(x)].filter(Boolean).join(" · "))}</span>
-        ${x._j !== null ? `<span class="sig ${x._j < 7 ? "go" : "muted"}">${ago(x._j)}</span>` : ""}</span>
+      <span class="r-meta"><span>${esc([x.e ? nomAff(x.e) : "Entreprise non précisée", x.l || x.r, `via ${x.src}`].filter(Boolean).join(" · "))}</span></span>
+      <span class="r-tags">${tags}</span>
     </button>
     <div class="r-act">
-      <a class="btn small ghost" href="${esc(x.u)}" target="_blank" rel="noopener">Voir l'offre ↗</a>
+      <a class="btn small c-blue" href="${esc(x.u)}" target="_blank" rel="noopener">Voir l'offre ↗</a>
+      ${x.w ? `<a class="btn small c-violet" href="${esc(x.w)}" target="_blank" rel="noopener">Site ↗</a>` : ""}
       ${stSelect(k, labelOf(k))}
     </div></li>`;
 }
@@ -309,13 +322,13 @@ function detailEnt(d) {
   const sigs = [d.lba && `<span class="sig warm">Prend des alternants : elle en recrute régulièrement, d'après La Bonne Alternance.</span>`,
     d.pot && `<span class="sig go">Grosses chances d'embauche dans ces métiers, d'après La Bonne Boîte (France Travail).</span>`,
     ...(d.t || []).filter(t => !/alternants|potentiel/i.test(t)).map(t => `<span class="sig muted">${esc(t)}</span>`)].filter(Boolean);
-  return `<p class="d-kicker">${esc(d.s)}</p><h2 class="d-title">${esc(nomAff(d.n))}</h2>
+  return `<p class="d-kicker"><span class="tag t-${SEG_COL[d.s] || "slate"}">${esc(d.s)}</span></p><h2 class="d-title">${esc(nomAff(d.n))}</h2>
     <p class="d-meta">${esc([d.v && `${tc(d.v)}${d.c ? ` (${d.c})` : ""}`, d.r, d.e !== "?" && `${d.e} salariés`].filter(Boolean).join(" · "))}${al ? `<br>Aussi connue sous : ${esc(al)}` : ""}</p>
     <div class="d-score"><span class="score" style="--s:${d.sc}" data-n="${d.sc}"></span><span>Score de pertinence sur 100 : type de boîte, taille et signaux de recrutement.</span></div>
     <div class="d-actions">
       ${d.w ? `<a class="btn primary" href="${esc(d.w)}" target="_blank" rel="noopener">${d.wp ? "Site (probable) ↗" : "Site web ↗"}</a>` : ""}
-      ${d.lba ? `<a class="btn" href="${esc(d.lba)}" target="_blank" rel="noopener">Candidater en alternance ↗</a>` : ""}
-      <a class="btn" href="${contactUrl(d)}" target="_blank" rel="noopener">Trouver un contact ↗</a>
+      ${d.lba ? `<a class="btn c-amber" href="${esc(d.lba)}" target="_blank" rel="noopener">Candidater en alternance ↗</a>` : ""}
+      <a class="btn c-violet" href="${contactUrl(d)}" target="_blank" rel="noopener">Trouver un contact ↗</a>
     </div>
     ${suiviBlock("ent:" + d.id, nomAff(d.n))}
     ${sigs.length ? `<section class="d-sec"><h3>Pourquoi elle est là</h3><div class="d-sigs">${sigs.join("")}</div></section>` : ""}
@@ -334,12 +347,12 @@ function detailEnt(d) {
 }
 function detailOff(x) {
   const ent = ENT_OF_OFF.get(x.id);
-  return `<p class="d-kicker">${esc(x.f)}</p><h2 class="d-title">${esc(tc(x.t))}</h2>
+  return `<p class="d-kicker"><span class="tag t-${FAM_COL[x.f] || "slate"}">${esc(x.f)}</span></p><h2 class="d-title">${esc(tc(x.t))}</h2>
     <p class="d-meta">${esc([x.e ? nomAff(x.e) : "Entreprise non précisée", x.l || x.r].filter(Boolean).join(" · "))}${x.cab ? " · via un cabinet" : ""}</p>
     <div class="d-actions">
       <a class="btn primary" href="${esc(x.u)}" target="_blank" rel="noopener">Voir l'offre ↗</a>
-      ${x.w ? `<a class="btn" href="${esc(x.w)}" target="_blank" rel="noopener">Site de la boîte ↗</a>` : ""}
-      ${ent ? `<button class="btn" data-open="ent:${ent.id}">Fiche de la boîte</button>` : ""}
+      ${x.w ? `<a class="btn c-violet" href="${esc(x.w)}" target="_blank" rel="noopener">Site de la boîte ↗</a>` : ""}
+      ${ent ? `<button class="btn c-cyan" data-open="ent:${ent.id}">Fiche de la boîte</button>` : ""}
     </div>
     ${suiviBlock("off:" + x.id, labelOf("off:" + x.id))}
     <section class="d-sec"><h3>Infos</h3><dl class="facts">
