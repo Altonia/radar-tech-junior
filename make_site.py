@@ -1,4 +1,4 @@
-"""Génère le site GitHub Pages (docs/data.json) et l'Excel (docs/radar-tech-junior.xlsx)."""
+"""Génère le site GitHub Pages (docs/data.json) et l'Excel (docs/m13.xlsx)."""
 import json, os, datetime, urllib.parse
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment
@@ -74,7 +74,7 @@ sheet(ws, [("Intitulé", 50), ("Entreprise", 30), ("Type de poste", 22), ("Contr
       links=(9, 10))
 ws = wb.create_sheet("Mode d'emploi")
 for line in [
-    "Radar Tech Junior — mis à jour le " + meta["maj"],
+    "M13 — mis à jour le " + meta["maj"],
     "",
     "Onglet Entreprises : pour les candidatures spontanées. Utilisez les flèches de filtre en haut de chaque colonne.",
     "« Prend des alternants » : l'entreprise recrute régulièrement des alternants (La Bonne Alternance).",
@@ -90,6 +90,6 @@ for line in [
 ]:
     ws.append([line])
 ws.column_dimensions["A"].width = 130; ws["A1"].font = Font(bold=True, size=14)
-wb.save(P("docs/radar-tech-junior.xlsx"))
+wb.save(P("docs/m13.xlsx"))
 print(len(ents), "entreprises,", len(offres), "offres →", round(os.path.getsize(P("docs/data.json")) / 1e6, 2), "Mo JSON,",
-      round(os.path.getsize(P("docs/radar-tech-junior.xlsx")) / 1e6, 2), "Mo Excel")
+      round(os.path.getsize(P("docs/m13.xlsx")) / 1e6, 2), "Mo Excel")

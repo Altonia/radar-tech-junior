@@ -6,25 +6,26 @@
 <meta name="theme-color" content="#f4f6fb" media="(prefers-color-scheme: light)">
 <script>try { const t = localStorage.getItem("theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch {}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Le Filon</title>
+<title>M13</title>
 <meta name="description" content="Les boîtes tech qui peuvent t'embaucher : alternance et CDI junior pour profils Bac+5, en Île-de-France, Pays de la Loire et Bretagne.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,500;0,6..96,700;1,6..96,500;1,6..96,700&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@500;600&display=swap">
 <link rel="stylesheet" href="style.css">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230a0d14'/%3E%3Cpath d='M9 22 16 8l7 14' fill='none' stroke='%233b82f6' stroke-width='3.2' stroke-linejoin='round'/%3E%3C/svg%3E">
 </head>
 <body>
 <header class="hero">
+  <canvas class="cluster" id="cluster" aria-hidden="true"></canvas>
   <div class="hero-in">
     <div class="hero-text">
       <p class="badge-live"><span></span><em id="maj-badge">Mis à jour aujourd'hui</em></p>
-      <h1><span class="hl"><em>Le</em> Filon</span></h1>
-      <p class="tagline">Les boîtes tech qui peuvent t'embaucher. Alternance ou CDI junior, en dev, IA, data, gestion de projet, AMOA ou conseil ERP et CRM. Île-de-France, Pays de la Loire et Bretagne.</p>
+      <h1><span class="hl">M13</span></h1>
+      <p class="tagline">Des milliers de boîtes tech qui peuvent t'embaucher, serrées comme les étoiles de l'amas d'Hercule. Alternance ou CDI junior, en dev, IA, data, gestion de projet, AMOA ou conseil ERP et CRM. Île-de-France, Pays de la Loire et Bretagne.</p>
       <p class="pulse" id="pulse"></p>
     </div>
     <div class="hero-actions">
-      <a class="btn excel" href="radar-tech-junior.xlsx" download>
+      <a class="btn excel" href="m13.xlsx" download>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0-4.5-4.5M12 15l4.5-4.5M4 20h16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         Tout en Excel
       </a>
@@ -62,7 +63,7 @@
       <span class="count" id="count"></span>
       <select id="tri" aria-label="Trier"></select>
     </div>
-    <ol class="rows" id="rows"><li class="state">On charge le filon…</li></ol>
+    <ol class="rows" id="rows"><li class="state">On charge l'amas…</li></ol>
     <button class="btn more" id="more" hidden></button>
     <footer class="foot" id="foot"></footer>
   </main>

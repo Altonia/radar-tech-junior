@@ -407,7 +407,7 @@ function exportSuivi() {
   const rows = [["Élément", "Type", "Statut", "Note", "Modifié le"], ...[...Suivi.map.values()].map(s =>
     [s.label || labelOf(s.item), s.type === "ent" ? "Boîte" : "Offre", STATUT[s.statut], s.note || "", (s.updated_at || "").slice(0, 10)])];
   const csv = "﻿" + rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(";")).join("\n");
-  const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" })), download: "mon-suivi-le-filon.csv" });
+  const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" })), download: "mon-suivi-m13.csv" });
   document.body.append(a); a.click(); a.remove();
 }
 let noteTimer;
@@ -460,6 +460,28 @@ function bind() {
   if (Suivi.client) bindLogin();
 }
 
+/* ---------- amas d'Hercule (M13) : nuage d'étoiles dense au centre, clairsemé au bord ---------- */
+function drawCluster() {
+  const cv = $("#cluster"); if (!cv) return;
+  const r = cv.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
+  cv.width = r.width * dpr; cv.height = r.height * dpr;
+  const ctx = cv.getContext("2d"), W = cv.width, H = cv.height, cx = W / 2, cy = H / 2, R = Math.min(W, H) / 2;
+  const light = themeNow() === "light";
+  const cols = light ? ["47,107,255", "124,77,255", "224,52,139", "8,145,178"] : ["122,167,255", "167,139,250", "244,114,182", "255,255,255"];
+  let seed = 13; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const halo = ctx.createRadialGradient(cx, cy, 0, cx, cy, R * .55);
+  halo.addColorStop(0, light ? "rgba(124,77,255,.10)" : "rgba(167,139,250,.28)"); halo.addColorStop(1, light ? "rgba(124,77,255,0)" : "rgba(167,139,250,0)");
+  ctx.fillStyle = halo; ctx.fillRect(0, 0, W, H);
+  for (let i = 0; i < 1400; i++) {
+    const d = R * Math.pow(rnd(), 2.2) * .95, a = rnd() * Math.PI * 2;  // concentration au centre
+    const x = cx + Math.cos(a) * d, y = cy + Math.sin(a) * d;
+    const s = (rnd() < .04 ? 2.2 : rnd() < .25 ? 1.3 : .7) * dpr, c = cols[Math.floor(rnd() * cols.length)];
+    ctx.fillStyle = `rgba(${c},${(.35 + rnd() * .65) * (1 - d / R * .6)})`;
+    ctx.beginPath(); ctx.arc(x, y, s, 0, Math.PI * 2); ctx.fill();
+  }
+}
+addEventListener("resize", () => { clearTimeout(drawCluster.t); drawCluster.t = setTimeout(drawCluster, 200); });
+
 /* ---------- thème clair / sombre ---------- */
 const SUN = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6 6 6M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4"/></svg>`;
 const MOON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z"/></svg>`;
@@ -472,10 +494,10 @@ function paintTheme() {
 $("#theme").addEventListener("click", () => {
   const t = themeNow() === "dark" ? "light" : "dark";
   document.documentElement.dataset.theme = t; try { localStorage.setItem("theme", t); } catch {}
-  paintTheme();
+  paintTheme(); drawCluster();
 });
-matchMedia("(prefers-color-scheme: light)").addEventListener?.("change", paintTheme);
-paintTheme();
+matchMedia("(prefers-color-scheme: light)").addEventListener?.("change", () => { paintTheme(); drawCluster(); });
+paintTheme(); drawCluster();
 
 /* ---------- démarrage ---------- */
 fetch("data.json").then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }).then(async j => {
