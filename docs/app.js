@@ -271,10 +271,10 @@ const IC = {
 const domain = u => { try { return new URL(u).hostname.replace(/^www\./, ""); } catch { return ""; } };
 function rowEnt(d) {
   const k = "ent:" + d.id;
-  const tags = [`<span class="tag t-${SEG_COL[d.s] || "slate"}">${esc(d.s)}</span>`,
-    d.lba && `<span class="tag t-amber" title="Elle prend régulièrement des alternants">Ouverte aux nouvelles expériences</span>`, d.pot && `<span class="tag t-green" title="Grosses chances qu'elle recrute dans ces métiers">Cœur à prendre</span>`,
-    d._o.length && `<span class="tag t-blue">${d._o.length} offre${d._o.length > 1 ? "s" : ""} en cours</span>`,
-    ...(d.t || []).filter(t => /jeune pousse/i.test(t)).map(() => `<span class="tag t-pink">Jeune pousse</span>`)].filter(Boolean).join("");
+  const tags = [`<span class="tag k-type">${esc(d.s)}</span>`,
+    d.lba && `<span class="tag k-alt" title="Elle prend régulièrement des alternants">Ouverte aux nouvelles expériences</span>`, d.pot && `<span class="tag k-rec" title="Grosses chances qu'elle recrute dans ces métiers">Cœur à prendre</span>`,
+    d._o.length && `<span class="tag k-off">${d._o.length} offre${d._o.length > 1 ? "s" : ""} en cours</span>`,
+    ...(d.t || []).filter(t => /jeune pousse/i.test(t)).map(() => `<span class="tag k-type">Jeune pousse</span>`)].filter(Boolean).join("");
   return `<li class="row${S.cur === k ? " sel" : ""}"${hlAttr(k)} data-k="${k}">
     <button class="r-main" data-open="${k}">
       <span class="score" style="--s:${d.sc}" data-n="${d.sc}" title="${d.sc} % de compatibilité. On a vu des couples tenir avec moins."></span>
@@ -290,8 +290,8 @@ function rowEnt(d) {
 }
 function rowOff(x) {
   const k = "off:" + x.id;
-  const tags = [`<span class="tag t-${FAM_COL[x.f] || "slate"}">${esc(x.f)}</span>`, `<span class="tag t-${x.al ? "amber" : "slate"}">${esc(contratLabel(x))}</span>`,
-    x._j !== null && `<span class="tag t-${x._j < 7 ? "green" : "slate"}">${ago(x._j)}</span>`].filter(Boolean).join("");
+  const tags = [`<span class="tag k-type">${esc(x.f)}</span>`, `<span class="tag ${x.al ? "k-alt" : "k-type"}">${esc(contratLabel(x))}</span>`,
+    x._j !== null && `<span class="tag ${x._j < 7 ? "k-new" : "k-type"}">${ago(x._j)}</span>`].filter(Boolean).join("");
   return `<li class="row o${S.cur === k ? " sel" : ""}"${hlAttr(k)} data-k="${k}">
     <button class="r-main" data-open="${k}">
       <span class="r-title">${esc(tc(x.t))}</span>
@@ -322,20 +322,21 @@ function paintRow(k) {
 }
 
 const INTRO = {
-  ent: `<span class="intro-line">${"12 950"} boîtes qui n'attendent qu'une chose : que tu fasses le premier pas.</span>
+  ent: `<span class="intro-line">12 950 boîtes qui n'attendent qu'une chose : que tu fasses le premier pas.</span>
     <details><summary>L'art de la séduction (version candidature)</summary><ul>
-    <li>Court, sûr de toi, pas désespéré. Comme un premier message, en fait : 5 à 8 lignes, ce que tu sais faire, pourquoi elle, le contrat visé et quand tu peux commencer.</li>
-    <li>Écris à une vraie personne, pas à un formulaire. « Glisser dans ses DM » trouve le dirigeant ou les recruteurs.</li>
-    <li>Ne les laisse pas en vu. Pas de réponse au bout d'une semaine ? Une relance, une seule, c'est charmant. Trois, c'est flippant.</li>
-    <li>Alternance fin septembre : il n'est pas trop tard. Un contrat peut en général démarrer jusqu'à environ 3 mois après la rentrée.</li>
-    <li>« Ouverte aux nouvelles expériences » : elle prend régulièrement des alternants. « Cœur à prendre » : grosses chances qu'elle recrute. Le rond, c'est votre compatibilité.</li></ul></details>`,
+    <li>Court, sûr de toi, pas désespéré. Comme un premier message, en fait.</li>
+    <li>5 à 8 lignes suffisent : ce que tu sais faire, pourquoi elle et pas une autre, le contrat que tu veux et quand tu es libre.</li>
+    <li>Écris à une vraie personne, pas à un formulaire. « Glisser dans ses DM » te trouve le dirigeant ou les recruteurs.</li>
+    <li>Ne les laisse pas en vu. Pas de réponse après une semaine ? Une relance, c'est charmant. Trois, ça fait peur.</li>
+    <li>Alternance : il n'est pas trop tard. Un contrat peut en général commencer jusqu'à 3 mois après la rentrée.</li>
+    <li>« Ouverte aux nouvelles expériences » : elle prend des alternants. « Cœur à prendre » : elle a de grandes chances de recruter. Le rond, c'est votre compatibilité.</li></ul></details>`,
   off: `<span class="intro-line">CDI : enfin une relation longue durée qui tient ses promesses. Alternance : un pied chez eux, un pied à l'école. Rien de sérieux… pour l'instant.</span>
     <details><summary>Avant de te déclarer</summary><ul>
-    <li>Si tu peux, postule direct sur son site carrières : Adzuna reprend des offres publiées ailleurs.</li>
-    <li>Une annonce de plus de 2 semaines a peut-être déjà trouvé quelqu'un. Les plus fraîches sont en vert.</li>
-    <li>Les ESN publient beaucoup, et une partie de leurs offres sert juste à collectionner les CV. Méfie-toi des beaux parleurs.</li>
-    <li>On a déjà viré les postes seniors, les fausses offres d'écoles, les BTS et Bac+3, le freelance, les doublons et les liens morts.</li></ul></details>`,
-  suivi: `<span class="intro-line">Tes histoires en cours. Change le statut direct sur la ligne, ou ouvre-la pour noter où vous en êtes.</span>`,
+    <li>Si tu peux, réponds directement sur son site carrières : Adzuna reprend des annonces publiées ailleurs.</li>
+    <li>Une annonce de plus de 2 semaines a peut-être déjà trouvé quelqu'un. Les plus fraîches sont marquées.</li>
+    <li>Les ESN publient beaucoup, et une partie de leurs annonces sert juste à collectionner les CV. Méfie-toi des beaux parleurs.</li>
+    <li>J'ai déjà fait le tri : pas de postes seniors, pas de fausses annonces d'écoles, pas de BTS ni de Bac+3, pas de freelance.</li></ul></details>`,
+  suivi: `<span class="intro-line">Mes histoires en cours. Je ne regarde pas, promis.</span>`,
 };
 
 function render() {
@@ -343,8 +344,8 @@ function render() {
   const what = S.view === "ent" ? ["boîte", "boîtes"] : S.view === "off" ? ["offre", "offres"] : ["histoire", "histoires"];
   $("#count").textContent = `${fmt(r.length)} ${what[r.length > 1 ? 1 : 0]}`;
   const row = S.view === "ent" ? rowEnt : S.view === "off" ? rowOff : rowSuivi;
-  let empty = "Personne ici. Ton type est peut-être juste rare. Enlève un filtre pour élargir.";
-  if (S.view === "suivi" && !Suivi.map.size) empty = "Pas encore d'histoire. Choisis « Suivre » sur une boîte ou une offre : elle atterrit ici. Ne les laisse pas en vu.";
+  let empty = "Personne ici. Ton type est peut-être juste rare.";
+  if (S.view === "suivi" && !Suivi.map.size) empty = "Aucune histoire pour l'instant. Choisis « Suivre » sur une boîte qui te plaît, elle atterrira ici. Ne les laisse pas en vu.";
   $("#rows").innerHTML = r.length ? r.slice(0, S.n).map(row).join("") : `<li class="state">${empty}</li>`;
   $("#more").hidden = r.length <= S.n;
   $("#more").textContent = `Afficher la suite (${fmt(Math.max(0, r.length - S.n))})`;
@@ -375,7 +376,7 @@ function detailEnt(d) {
   const contacts = (d.dg || []).map(([n, r]) => `<li><b>${esc(n)}</b><span>${esc((r || "").toLowerCase())}</span>
       <span class="mini-links"><a href="${liPeople(`${n} ${c}`)}" target="_blank" rel="noopener">LinkedIn</a><a href="${g(`"${n}" "${c}"`)}" target="_blank" rel="noopener">Google</a></span></li>`).join("");
   return `<header class="d-head">
-      <p class="d-kicker"><span class="tag t-${SEG_COL[d.s] || "slate"}">${esc(d.s)}</span>${d.lba ? `<span class="tag t-amber">Ouverte aux nouvelles expériences</span>` : ""}${d.pot ? `<span class="tag t-green">Cœur à prendre</span>` : ""}</p>
+      <p class="d-kicker"><span class="tag k-type">${esc(d.s)}</span>${d.lba ? `<span class="tag k-alt">Ouverte aux nouvelles expériences</span>` : ""}${d.pot ? `<span class="tag k-rec">Cœur à prendre</span>` : ""}</p>
       <div class="d-titlerow"><span class="score" style="--s:${d.sc}" data-n="${d.sc}" title="${d.sc} % de compatibilité. On a vu des couples tenir avec moins."></span>
         <div><h2 class="d-title">${esc(nomAff(d.n))}</h2>
         <p class="d-meta">${esc([d.v && `${tc(d.v)}${d.c ? ` (${d.c})` : ""}`, d.r, d.e !== "?" && `${d.e} salariés`].filter(Boolean).join(" · "))}${al ? `<br>Aussi connue sous : ${esc(al)}` : ""}</p></div></div>
@@ -414,8 +415,8 @@ function detailEnt(d) {
 function detailOff(x) {
   const ent = ENT_OF_OFF.get(x.id);
   return `<header class="d-head">
-      <p class="d-kicker"><span class="tag t-${FAM_COL[x.f] || "slate"}">${esc(x.f)}</span><span class="tag t-${x.al ? "amber" : "slate"}">${esc(contratLabel(x))}</span>
-        ${x._j !== null ? `<span class="tag t-${x._j < 7 ? "green" : "slate"}">${ago(x._j)}</span>` : ""}</p>
+      <p class="d-kicker"><span class="tag k-type">${esc(x.f)}</span><span class="tag ${x.al ? "k-alt" : "k-type"}">${esc(contratLabel(x))}</span>
+        ${x._j !== null ? `<span class="tag ${x._j < 7 ? "k-new" : "k-type"}">${ago(x._j)}</span>` : ""}</p>
       <h2 class="d-title">${esc(tc(x.t))}</h2>
       <p class="d-meta">${esc([x.e ? nomAff(x.e) : "Entreprise non précisée", x.l || x.r].filter(Boolean).join(" · "))}${x.cab ? " · via un cabinet" : ""}</p>
       <div class="d-actions">
@@ -580,11 +581,13 @@ paintTheme(); drawCluster();
 
 /* ---------- accroches : une au hasard, on peut cliquer pour en changer ---------- */
 const ACCROCHES = [
-  "Elles ont toutes envie de toi. Elles ne le savent juste pas encore.",
-  "Ne les laisse pas en vu. Écris-leur.",
-  "Envoie ton CV. Le reste suivra.",
   "CDI : enfin une relation longue durée qui tient ses promesses.",
   "Alternance : un pied chez eux, un pied à l'école. Rien de sérieux… pour l'instant.",
+  "Elles ont toutes envie de toi. Elles ne le savent juste pas encore.",
+  "Ne les laisse pas en vu. Écris-leur.",
+  "12 950 boîtes qui n'attendent qu'une chose : que tu fasses le premier pas.",
+  "Envoie ton CV. Le reste suivra.",
+  "En 1974, on a envoyé un message à 25 000 années-lumière sans savoir si on aurait une réponse. Toi, tu peux bien écrire à une ESN à Levallois.",
   "Ton CV a plus de chances que le message d'Arecibo : ici, la réponse met moins de 50 000 ans.",
   "Plus de 100 000 étoiles dans l'amas. Aucune ne brille comme toi. (Ok, celle-là était facile.)",
   "Au cœur de M13, deux étoiles se rencontrent et en font naître une nouvelle. Ici, c'est pareil, mais avec un contrat.",
@@ -592,7 +595,7 @@ const ACCROCHES = [
 let acc = Math.floor(Math.random() * ACCROCHES.length);
 function showAccroche(next) {
   if (next) acc = (acc + 1) % ACCROCHES.length;
-  const el = $("#accroche"); el.textContent = ACCROCHES[acc]; el.title = "Clique pour une autre";
+  const el = $("#accroche"); el.textContent = ACCROCHES[acc].replace("12 950", fmt(DATA.length || 12950)); el.title = "Clique, j'en ai d'autres";
 }
 $("#accroche").addEventListener("click", () => showAccroche(true));
 showAccroche();
