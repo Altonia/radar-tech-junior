@@ -382,7 +382,7 @@ html.locked, html.locked body { overflow: hidden; }
 /* ---------- textes M13 ---------- */
 #accroche { font: 700 clamp(19px, 2.4vw, 25px)/1.3 var(--f-disp); color: var(--fg); letter-spacing: -0.01em; cursor: pointer; margin: 0 0 10px; max-width: 30ch; }
 #accroche:hover { color: var(--blue-2); }
-.sub-tag { color: var(--fg-3); font-size: 14.5px; margin: 0 0 16px; max-width: 62ch; }
+.sub-tag { color: var(--fg-2); font-size: 16.5px; line-height: 1.6; margin: 0 0 18px; max-width: 60ch; padding-left: 16px; border-left: 2px solid var(--accent); }
 .cluster-cap { position: absolute; z-index: 1; right: max(20px, calc((100vw - 1240px) / 2 + 20px)); bottom: 18px; width: 300px; margin: 0;
   font-size: 12px; line-height: 1.45; color: var(--fg-3); text-align: right; top: 26px; bottom: auto; }
 .intro-line { display: block; font: 700 17px/1.4 var(--f-disp); color: var(--fg); margin-bottom: 4px; }
