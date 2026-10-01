@@ -9,7 +9,7 @@ const ls = {
 };
 const PAGE = 40;
 const REGIONS = ["Île-de-France", "Pays de la Loire", "Bretagne"];
-const STATUTS = [["a_contacter", "À contacter"], ["candidate", "Candidaté"], ["relance", "Relancé"], ["entretien", "Entretien"], ["refus", "Refusé"], ["accepte", "Accepté"]];
+const STATUTS = [["a_contacter", "Crush"], ["candidate", "Message envoyé"], ["relance", "Relancée"], ["entretien", "Premier rendez-vous"], ["refus", "Ghostée"], ["accepte", "C'est un match"]];
 const STATUT = Object.fromEntries(STATUTS);
 
 let DATA = [], OFFRES = [], META = {}, REF = new Date(), ENT_BY_ID = new Map(), OFF_BY_ID = new Map(), ENT_OF_OFF = new Map();
@@ -152,7 +152,7 @@ const FACETS = {
     { id: "region", title: "Région", of: d => [d.r], opts: () => REGIONS.map(r => [r, r]) },
     { id: "seg", title: "Type de boîte", of: d => [d.s], opts: () => uniqCount(DATA.map(d => d.s)), limit: 6 },
     { id: "sig", title: "Ça recrute ?", of: d => [d.lba && "alt", d.pot && "pot", d._o.length && "off", d.w && !d.wp && "site"].filter(Boolean),
-      opts: () => [["alt", "Prend des alternants"], ["pot", "Potentiel d'embauche"], ["off", "A des offres en ce moment"], ["site", "Site vérifié"]] },
+      opts: () => [["alt", "Ouverte aux nouvelles expériences"], ["pot", "Cœur à prendre"], ["off", "A des offres en ce moment"], ["site", "Site vérifié"]] },
     { id: "taille", title: "Taille", of: d => [size(d.tr)], opts: () => [["s", "Petite (3 à 19)"], ["m", "Moyenne (20 à 249)"], ["l", "Grosse (250 et plus)"], ["?", "Taille inconnue"]] },
     { id: "dep", title: "Département", of: d => [DEPTS[dept(d.c)] ? dept(d.c) : "?"], opts: () => [...Object.entries(DEPTS).map(([k, n]) => [k, `${k} · ${n}`]), ["?", "Non précisé"]] },
   ],
@@ -256,10 +256,10 @@ function stSelect(k, label) {
 }
 const hlAttr = k => { const s = Suivi.get(k); return s ? ` data-hl="${s.statut}"` : ""; };
 // couleur par type de boîte (classes .t-*)
-const SEG_COL = { "ESN / Conseil IT": "blue", "Dev / studio logiciel": "violet", "Éditeur de logiciels": "cyan", "IA / Data": "pink",
-  "Intégrateur ERP / CRM / e-commerce": "amber", "Agence web / digitale": "green", "Agence com / pub": "rose", "Infra / hébergement": "slate",
+const SEG_COL = { "ESN / Conseil IT": "sky", "Dev / studio logiciel": "violet", "Éditeur de logiciels": "cyan", "IA / Data": "pink",
+  "Intégrateur ERP / CRM / e-commerce": "blue", "Agence web / digitale": "green", "Agence com / pub": "rose", "Infra / hébergement": "slate",
   "Recruteur (DSI, autre secteur)": "teal", "Cabinet de recrutement": "slate" };
-const FAM_COL = { "Développement": "violet", "IA / Data": "pink", "Chef de projet / PO": "blue", "AMOA / Consultant SI": "cyan", "Consultant ERP / CRM": "amber", "E-commerce": "green" };
+const FAM_COL = { "Développement": "violet", "IA / Data": "pink", "Chef de projet / PO": "blue", "AMOA / Consultant SI": "cyan", "Consultant ERP / CRM": "sky", "E-commerce": "green" };
 // petites icônes des boutons (trait, couleur du texte)
 const IC = {
   site: `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3Z"/></svg>`,
@@ -272,19 +272,19 @@ const domain = u => { try { return new URL(u).hostname.replace(/^www\./, ""); } 
 function rowEnt(d) {
   const k = "ent:" + d.id;
   const tags = [`<span class="tag t-${SEG_COL[d.s] || "slate"}">${esc(d.s)}</span>`,
-    d.lba && `<span class="tag t-amber">Prend des alternants</span>`, d.pot && `<span class="tag t-green">Recrute</span>`,
+    d.lba && `<span class="tag t-amber" title="Elle prend régulièrement des alternants">Ouverte aux nouvelles expériences</span>`, d.pot && `<span class="tag t-green" title="Grosses chances qu'elle recrute dans ces métiers">Cœur à prendre</span>`,
     d._o.length && `<span class="tag t-blue">${d._o.length} offre${d._o.length > 1 ? "s" : ""} en cours</span>`,
     ...(d.t || []).filter(t => /jeune pousse/i.test(t)).map(() => `<span class="tag t-pink">Jeune pousse</span>`)].filter(Boolean).join("");
   return `<li class="row${S.cur === k ? " sel" : ""}"${hlAttr(k)} data-k="${k}">
     <button class="r-main" data-open="${k}">
-      <span class="score" style="--s:${d.sc}" data-n="${d.sc}" title="Score de pertinence : ${d.sc} sur 100"></span>
+      <span class="score" style="--s:${d.sc}" data-n="${d.sc}" title="${d.sc} % de compatibilité. On a vu des couples tenir avec moins."></span>
       <span class="r-title">${esc(nomAff(d.n))}</span>
       <span class="r-meta"><span>${esc([d.v && `${tc(d.v)}${d.c ? ` (${dept(d.c)})` : ""}`, d.e !== "?" && `${d.e} salariés`, d.w && domain(d.w)].filter(Boolean).join(" · "))}</span></span>
       <span class="r-tags">${tags}</span>
     </button>
     <div class="r-act">
-      ${d.w ? `<a class="btn small c-blue" href="${esc(d.w)}" target="_blank" rel="noopener">${IC.site}Site</a>` : ""}
-      <a class="btn small c-violet" href="${contactUrl(d)}" target="_blank" rel="noopener" title="Chercher ${esc(contactOf(d).label)} sur LinkedIn">${IC.contact}Contact</a>
+      ${d.w ? `<a class="btn small c-blue" href="${esc(d.w)}" target="_blank" rel="noopener">${IC.site}La stalker un peu avant</a>` : ""}
+      <a class="btn small c-violet" href="${contactUrl(d)}" target="_blank" rel="noopener" title="Chercher ${esc(contactOf(d).label)} sur LinkedIn">${IC.contact}Glisser dans ses DM</a>
       ${stSelect(k, nomAff(d.n))}
     </div></li>`;
 }
@@ -300,7 +300,7 @@ function rowOff(x) {
     </button>
     <div class="r-act">
       <a class="btn small c-blue" href="${esc(x.u)}" target="_blank" rel="noopener">${IC.offre}Voir l'offre</a>
-      ${x.w ? `<a class="btn small c-violet" href="${esc(x.w)}" target="_blank" rel="noopener">${IC.site}Site</a>` : ""}
+      ${x.w ? `<a class="btn small c-violet" href="${esc(x.w)}" target="_blank" rel="noopener">${IC.site}La stalker un peu avant</a>` : ""}
       ${stSelect(k, labelOf(k))}
     </div></li>`;
 }
@@ -322,28 +322,29 @@ function paintRow(k) {
 }
 
 const INTRO = {
-  ent: `Les boîtes où envoyer une candidature spontanée. Les PME et les intégrateurs passent devant, les grands groupes ferment la marche.
-    <details><summary>Nos conseils pour une spontanée qui marche</summary><ul>
-    <li>Écris à une vraie personne plutôt qu'à un formulaire. Dans une boîte de moins de 50 personnes, vise le dirigeant ou le CTO : le bouton « Contact » ouvre la bonne recherche LinkedIn.</li>
-    <li>Fais court : 5 à 8 lignes. Ce que tu sais faire, pourquoi eux, le contrat visé (rythme d'alternance ou CDI junior) et quand tu peux commencer.</li>
-    <li>Alternance fin septembre : pas de panique, un contrat peut en général démarrer jusqu'à environ 3 mois après le début de la formation.</li>
-    <li><b>Alternants</b> : la boîte en prend régulièrement (La Bonne Alternance). <b>Recrute</b> : grosses chances d'embauche dans ces métiers (La Bonne Boîte, France Travail). Le rond, c'est le score de pertinence sur 100.</li></ul></details>`,
-  off: `Les offres ouvertes aux juniors (2 ans d'expérience max) et les alternances des 31 derniers jours.
-    <details><summary>Avant de postuler</summary><ul>
-    <li>Si tu peux, postule sur le site carrières de la boîte : Adzuna reprend des offres publiées ailleurs.</li>
-    <li>Au-delà de 2 semaines, l'offre est peut-être déjà pourvue. Les plus fraîches sont en vert.</li>
-    <li>Les ESN publient beaucoup d'offres, dont une partie sert juste à remplir leur vivier de CV.</li>
-    <li>On a déjà viré : postes seniors, fausses offres d'écoles, niveaux BTS ou Bac+3, missions freelance, doublons et liens morts.</li></ul></details>`,
-  suivi: `Toutes les boîtes et offres que tu suis. Change le statut direct sur la ligne, ou ouvre-la pour ajouter une note.`,
+  ent: `<span class="intro-line">${"12 950"} boîtes qui n'attendent qu'une chose : que tu fasses le premier pas.</span>
+    <details><summary>L'art de la séduction (version candidature)</summary><ul>
+    <li>Court, sûr de toi, pas désespéré. Comme un premier message, en fait : 5 à 8 lignes, ce que tu sais faire, pourquoi elle, le contrat visé et quand tu peux commencer.</li>
+    <li>Écris à une vraie personne, pas à un formulaire. « Glisser dans ses DM » trouve le dirigeant ou les recruteurs.</li>
+    <li>Ne les laisse pas en vu. Pas de réponse au bout d'une semaine ? Une relance, une seule, c'est charmant. Trois, c'est flippant.</li>
+    <li>Alternance fin septembre : il n'est pas trop tard. Un contrat peut en général démarrer jusqu'à environ 3 mois après la rentrée.</li>
+    <li>« Ouverte aux nouvelles expériences » : elle prend régulièrement des alternants. « Cœur à prendre » : grosses chances qu'elle recrute. Le rond, c'est votre compatibilité.</li></ul></details>`,
+  off: `<span class="intro-line">CDI : enfin une relation longue durée qui tient ses promesses. Alternance : un pied chez eux, un pied à l'école. Rien de sérieux… pour l'instant.</span>
+    <details><summary>Avant de te déclarer</summary><ul>
+    <li>Si tu peux, postule direct sur son site carrières : Adzuna reprend des offres publiées ailleurs.</li>
+    <li>Une annonce de plus de 2 semaines a peut-être déjà trouvé quelqu'un. Les plus fraîches sont en vert.</li>
+    <li>Les ESN publient beaucoup, et une partie de leurs offres sert juste à collectionner les CV. Méfie-toi des beaux parleurs.</li>
+    <li>On a déjà viré les postes seniors, les fausses offres d'écoles, les BTS et Bac+3, le freelance, les doublons et les liens morts.</li></ul></details>`,
+  suivi: `<span class="intro-line">Tes histoires en cours. Change le statut direct sur la ligne, ou ouvre-la pour noter où vous en êtes.</span>`,
 };
 
 function render() {
   const r = sorted(items().filter(it => matches(it)));
-  const what = S.view === "ent" ? ["boîte", "boîtes"] : S.view === "off" ? ["offre", "offres"] : ["élément suivi", "éléments suivis"];
+  const what = S.view === "ent" ? ["boîte", "boîtes"] : S.view === "off" ? ["offre", "offres"] : ["histoire", "histoires"];
   $("#count").textContent = `${fmt(r.length)} ${what[r.length > 1 ? 1 : 0]}`;
   const row = S.view === "ent" ? rowEnt : S.view === "off" ? rowOff : rowSuivi;
-  let empty = "Rien avec ces filtres. Enlève-en un pour élargir.";
-  if (S.view === "suivi" && !Suivi.map.size) empty = "Rien pour l'instant. Choisis « + Suivre » sur une boîte ou une offre : elle atterrit ici.";
+  let empty = "Personne ici. Ton type est peut-être juste rare. Enlève un filtre pour élargir.";
+  if (S.view === "suivi" && !Suivi.map.size) empty = "Pas encore d'histoire. Choisis « Suivre » sur une boîte ou une offre : elle atterrit ici. Ne les laisse pas en vu.";
   $("#rows").innerHTML = r.length ? r.slice(0, S.n).map(row).join("") : `<li class="state">${empty}</li>`;
   $("#more").hidden = r.length <= S.n;
   $("#more").textContent = `Afficher la suite (${fmt(Math.max(0, r.length - S.n))})`;
@@ -358,7 +359,7 @@ function refreshCounts() {
 /* ---------- fiche détaillée ---------- */
 function suiviBlock(k, label) {
   const s = Suivi.get(k);
-  return `<section class="d-sec"><h3>Mon suivi</h3>
+  return `<section class="d-sec"><h3>Où vous en êtes</h3>
     <div class="steps" role="group" aria-label="Statut">${STATUTS.map(([v, l]) =>
       `<button class="step" data-hl="${v}" data-statut="${v}" data-k="${esc(k)}" data-label="${esc(label)}" aria-pressed="${s?.statut === v}">${l}</button>`).join("")}</div>
     <textarea class="note" id="note" data-k="${esc(k)}" data-label="${esc(label)}" placeholder="Une note : le contact, la date de relance, ce qu'ils t'ont répondu…">${esc(s?.note || "")}</textarea>
@@ -368,27 +369,27 @@ function suiviBlock(k, label) {
 }
 function detailEnt(d) {
   const c = clean(d.n), q = encodeURIComponent(c), al = alias(d.n), ct = contactOf(d);
-  const sigs = [d.lba && `<span class="sig warm">Prend des alternants : elle en recrute régulièrement, d'après La Bonne Alternance.</span>`,
-    d.pot && `<span class="sig go">Grosses chances d'embauche dans ces métiers, d'après La Bonne Boîte (France Travail).</span>`,
+  const sigs = [d.lba && `<span class="sig warm">Ouverte aux nouvelles expériences : elle prend régulièrement des alternants.</span>`,
+    d.pot && `<span class="sig go">Cœur à prendre : grosses chances qu'elle recrute dans ces métiers.</span>`,
     ...(d.t || []).filter(t => !/alternants|potentiel/i.test(t)).map(t => `<span class="sig muted">${esc(t)}</span>`)].filter(Boolean);
   const contacts = (d.dg || []).map(([n, r]) => `<li><b>${esc(n)}</b><span>${esc((r || "").toLowerCase())}</span>
       <span class="mini-links"><a href="${liPeople(`${n} ${c}`)}" target="_blank" rel="noopener">LinkedIn</a><a href="${g(`"${n}" "${c}"`)}" target="_blank" rel="noopener">Google</a></span></li>`).join("");
   return `<header class="d-head">
-      <p class="d-kicker"><span class="tag t-${SEG_COL[d.s] || "slate"}">${esc(d.s)}</span>${d.lba ? `<span class="tag t-amber">Prend des alternants</span>` : ""}${d.pot ? `<span class="tag t-green">Recrute</span>` : ""}</p>
-      <div class="d-titlerow"><span class="score" style="--s:${d.sc}" data-n="${d.sc}" title="Score de pertinence sur 100"></span>
+      <p class="d-kicker"><span class="tag t-${SEG_COL[d.s] || "slate"}">${esc(d.s)}</span>${d.lba ? `<span class="tag t-amber">Ouverte aux nouvelles expériences</span>` : ""}${d.pot ? `<span class="tag t-green">Cœur à prendre</span>` : ""}</p>
+      <div class="d-titlerow"><span class="score" style="--s:${d.sc}" data-n="${d.sc}" title="${d.sc} % de compatibilité. On a vu des couples tenir avec moins."></span>
         <div><h2 class="d-title">${esc(nomAff(d.n))}</h2>
         <p class="d-meta">${esc([d.v && `${tc(d.v)}${d.c ? ` (${d.c})` : ""}`, d.r, d.e !== "?" && `${d.e} salariés`].filter(Boolean).join(" · "))}${al ? `<br>Aussi connue sous : ${esc(al)}` : ""}</p></div></div>
       <div class="d-actions">
-        ${d.w ? `<a class="btn primary" href="${esc(d.w)}" target="_blank" rel="noopener">${IC.site}${d.wp ? "Site (probable)" : "Site web"}</a>` : ""}
-        <a class="btn c-violet" href="${ct.url}" target="_blank" rel="noopener">${IC.contact}${ct.role ? "Contacter le dirigeant" : `Trouver ${esc(ct.label)}`}</a>
+        ${d.w ? `<a class="btn primary" href="${esc(d.w)}" target="_blank" rel="noopener">${IC.site}La stalker un peu avant</a>` : ""}
+        <a class="btn c-violet" href="${ct.url}" target="_blank" rel="noopener">${IC.contact}Glisser dans ses DM</a>
         <a class="btn ghost" href="https://www.linkedin.com/search/results/companies/?keywords=${q}" target="_blank" rel="noopener">LinkedIn</a>
       </div>
     </header>
     <div class="d-grid">
       <div class="d-main">
-        ${d._o.length ? `<section class="d-sec"><h3>Ses offres du moment (${d._o.length})</h3><ul class="d-offres">${d._o.map(x =>
+        ${d._o.length ? `<section class="d-sec"><h3>Elle cherche quelqu'un (${d._o.length})</h3><ul class="d-offres">${d._o.map(x =>
           `<li><a href="#" data-open="off:${x.id}">${esc(tc(x.t))}</a><span>${esc([contratLabel(x), x.l, ago(x._j)].filter(Boolean).join(" · "))}</span></li>`).join("")}</ul></section>` : ""}
-        ${sigs.length ? `<section class="d-sec"><h3>Pourquoi elle est là</h3><div class="d-sigs">${sigs.join("")}</div></section>` : ""}
+        ${sigs.length ? `<section class="d-sec"><h3>Pourquoi elle te plaira</h3><div class="d-sigs">${sigs.join("")}</div></section>` : ""}
         <section class="d-sec"><h3>Infos</h3><dl class="facts">
           <dt>Activité</dt><dd>${esc(d.a || "Non précisée")}</dd>
           ${d.y ? `<dt>Création</dt><dd>${d.y}</dd>` : ""}
@@ -401,7 +402,7 @@ function detailEnt(d) {
       </div>
       <aside class="d-side">
         ${suiviBlock("ent:" + d.id, nomAff(d.n))}
-        <section class="d-sec"><h3>Qui contacter</h3>
+        <section class="d-sec"><h3>À qui écrire</h3>
           ${contacts ? `<ul class="d-contacts">${contacts}</ul>` : `<p class="hint">Pas de dirigeant connu dans le registre.</p>`}
           <div class="links">
             <a href="${liPeople(`${c} ${size(d.tr) === "l" ? "recrutement" : "CTO"}`)}" target="_blank" rel="noopener">${size(d.tr) === "l" ? "Ses recruteurs" : "Son équipe tech"} sur LinkedIn</a>
@@ -457,7 +458,7 @@ function sheet(open) {  // fenêtre « tous les filtres »
 function setView(v) {
   S.view = v; S.n = PAGE; closeItem(); sheet(false);
   document.querySelectorAll(".view").forEach(b => b.setAttribute("aria-selected", b.dataset.view === v));
-  $("#intro").innerHTML = INTRO[v];
+  $("#intro").innerHTML = INTRO[v].replace("12 950", fmt(DATA.length));
   $("#tri").innerHTML = TRIS[v].map(([k, l]) => `<option value="${k}"${S.tri[v] === k ? " selected" : ""}>${l}</option>`).join("");
   $("#q").value = S.q = ""; $("#q").placeholder = v === "ent" ? "Une boîte, une ville, une activité…" : v === "off" ? "Un poste, une boîte, une techno…" : "Un nom, une note…";
   try { history.replaceState(null, "", { ent: "#boites", off: "#offres", suivi: "#suivi" }[v]); } catch {}
@@ -545,10 +546,10 @@ function drawCluster() {
   cv.width = r.width * dpr; cv.height = r.height * dpr;
   const ctx = cv.getContext("2d"), W = cv.width, H = cv.height, cx = W / 2, cy = H / 2, R = Math.min(W, H) / 2;
   const light = themeNow() === "light";
-  const cols = light ? ["47,107,255", "124,77,255", "224,52,139", "8,145,178"] : ["122,167,255", "167,139,250", "244,114,182", "255,255,255"];
+  const cols = light ? ["183,121,31", "224,122,31", "212,80,46", "15,118,110"] : ["255,224,138", "245,196,81", "255,154,60", "255,250,235", "45,212,191"];
   let seed = 13; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
   const halo = ctx.createRadialGradient(cx, cy, 0, cx, cy, R * .55);
-  halo.addColorStop(0, light ? "rgba(124,77,255,.10)" : "rgba(167,139,250,.28)"); halo.addColorStop(1, light ? "rgba(124,77,255,0)" : "rgba(167,139,250,0)");
+  halo.addColorStop(0, light ? "rgba(224,122,31,.12)" : "rgba(245,196,81,.26)"); halo.addColorStop(1, light ? "rgba(224,122,31,0)" : "rgba(245,196,81,0)");
   ctx.fillStyle = halo; ctx.fillRect(0, 0, W, H);
   for (let i = 0; i < 1400; i++) {
     const d = R * Math.pow(rnd(), 2.2) * .95, a = rnd() * Math.PI * 2;  // concentration au centre
@@ -577,6 +578,25 @@ $("#theme").addEventListener("click", () => {
 matchMedia("(prefers-color-scheme: light)").addEventListener?.("change", () => { paintTheme(); drawCluster(); });
 paintTheme(); drawCluster();
 
+/* ---------- accroches : une au hasard, on peut cliquer pour en changer ---------- */
+const ACCROCHES = [
+  "Elles ont toutes envie de toi. Elles ne le savent juste pas encore.",
+  "Ne les laisse pas en vu. Écris-leur.",
+  "Envoie ton CV. Le reste suivra.",
+  "CDI : enfin une relation longue durée qui tient ses promesses.",
+  "Alternance : un pied chez eux, un pied à l'école. Rien de sérieux… pour l'instant.",
+  "Ton CV a plus de chances que le message d'Arecibo : ici, la réponse met moins de 50 000 ans.",
+  "Plus de 100 000 étoiles dans l'amas. Aucune ne brille comme toi. (Ok, celle-là était facile.)",
+  "Au cœur de M13, deux étoiles se rencontrent et en font naître une nouvelle. Ici, c'est pareil, mais avec un contrat.",
+];
+let acc = Math.floor(Math.random() * ACCROCHES.length);
+function showAccroche(next) {
+  if (next) acc = (acc + 1) % ACCROCHES.length;
+  const el = $("#accroche"); el.textContent = ACCROCHES[acc]; el.title = "Clique pour une autre";
+}
+$("#accroche").addEventListener("click", () => showAccroche(true));
+showAccroche();
+
 /* ---------- démarrage ---------- */
 fetch("data.json").then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }).then(async j => {
   META = j.meta; REF = new Date(META.ref); OFFRES = j.offres; DATA = j.entreprises;
@@ -590,10 +610,11 @@ fetch("data.json").then(r => { if (!r.ok) throw new Error(r.status); return r.js
   await initAuth();
   $("#n-ent").textContent = fmt(DATA.length); $("#n-off").textContent = fmt(OFFRES.length);
   const fresh = OFFRES.filter(x => x._j !== null && x._j < 7).length;
-  $("#pulse").innerHTML = `<span><b>${fmt(DATA.filter(d => d.lba).length)}</b> boîtes prennent des alternants</span>
+  $("#pulse").innerHTML = `<span><b>${fmt(DATA.filter(d => d.lba).length)}</b> ouvertes aux nouvelles expériences</span>
     <span><b>${fmt(fresh)}</b> offres de moins d'une semaine</span><span><b>${fmt(DATA.filter(d => d.w).length)}</b> avec leur site</span>`;
   $("#maj-badge").textContent = `Données du ${META.maj}`;
-  $("#foot").textContent = "Sources : base SIRENE (API Recherche d'entreprises), France Travail (offres et La Bonne Boîte), La Bonne Alternance, Adzuna, partenaires Odoo, Wikidata. « Site web » est vérifié par le SIREN affiché sur le site ; « Site (probable) » : le domaine colle au nom, sans preuve formelle.";
+  $("#foot").innerHTML = `<p class="foot-love">Si tu décroches un entretien, c'est moi qui choisis le resto pour fêter ça.</p>
+    <p class="foot-src">Sources : base SIRENE, France Travail, La Bonne Alternance, Adzuna, partenaires Odoo, Wikidata.</p>`;
   bind(); refreshCounts();
   setView(location.hash === "#offres" ? "off" : location.hash === "#suivi" ? "suivi" : "ent");
 }).catch(err => { console.error(err); $("#rows").innerHTML = `<li class="state">Les données n'ont pas voulu charger. Recharge la page ; si ça continue, prends l'Excel en haut.</li>`; });

@@ -17,17 +17,19 @@
 <body>
 <header class="hero">
   <canvas class="cluster" id="cluster" aria-hidden="true"></canvas>
+  <p class="cluster-cap">M13, l'amas d'Hercule. En 1974, on lui a envoyé un message à 25 000 années-lumière sans savoir si on aurait une réponse. Toi, tu peux bien écrire à une ESN à Levallois.</p>
   <div class="hero-in">
     <div class="hero-text">
       <p class="badge-live"><span></span><em id="maj-badge">Mis à jour aujourd'hui</em></p>
       <h1><span class="hl">M13</span></h1>
-      <p class="tagline">Des milliers de boîtes tech qui peuvent t'embaucher, serrées comme les étoiles de l'amas d'Hercule. Alternance ou CDI junior, en dev, IA, data, gestion de projet, AMOA ou conseil ERP et CRM. Île-de-France, Pays de la Loire et Bretagne.</p>
+      <p class="tagline" id="accroche">Elles ont toutes envie de toi. Elles ne le savent juste pas encore.</p>
+      <p class="sub-tag">Dev, IA, data, chef de projet, AMOA, ERP et CRM. Alternance ou CDI junior, en Île-de-France, Pays de la Loire et Bretagne.</p>
       <p class="pulse" id="pulse"></p>
     </div>
     <div class="hero-actions">
       <a class="btn excel" href="m13.xlsx" download>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0-4.5-4.5M12 15l4.5-4.5M4 20h16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        Tout en Excel
+        Les prendre toutes
       </a>
       <div class="account" id="account"></div>
       <button class="btn theme-btn" id="theme" aria-label="Changer de thème" title="Mode clair / sombre"></button>
@@ -38,7 +40,7 @@
 <nav class="views" role="tablist" aria-label="Vue">
   <button role="tab" class="view" data-view="ent" aria-selected="true">Les boîtes <b id="n-ent"></b></button>
   <button role="tab" class="view" data-view="off" aria-selected="false">Les offres <b id="n-off"></b></button>
-  <button role="tab" class="view" data-view="suivi" aria-selected="false">Mon suivi <b id="n-suivi"></b></button>
+  <button role="tab" class="view" data-view="suivi" aria-selected="false">Mes histoires en cours <b id="n-suivi"></b></button>
 </nav>
 
 <div class="layout">
@@ -60,7 +62,7 @@
       <span class="count" id="count"></span>
       <select id="tri" aria-label="Trier"></select>
     </div>
-    <ol class="rows" id="rows"><li class="state">On charge l'amas…</li></ol>
+    <ol class="rows" id="rows"><li class="state">On chauffe les recruteurs…</li></ol>
     <button class="btn more" id="more" hidden></button>
     <footer class="foot" id="foot"></footer>
   </main>
@@ -80,8 +82,8 @@
 
 <dialog class="login" id="login">
   <form method="dialog" id="login-form">
-    <h2>Garde ton suivi partout</h2>
-    <p>Mets ton email, on t'envoie un lien de connexion. Pas de mot de passe. Ton suivi reste privé : personne d'autre ne le voit.</p>
+    <h2>Garde tes histoires partout</h2>
+    <p>Mets ton email, on t'envoie un lien de connexion. Pas de mot de passe. Tes histoires restent entre toi et toi : personne d'autre ne les voit.</p>
     <label for="email">Ton email</label>
     <input type="email" id="email" required autocomplete="email" placeholder="prenom@exemple.fr">
     <p class="msg" id="login-msg" role="status"></p>
