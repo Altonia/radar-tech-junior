@@ -123,8 +123,8 @@ function renderAccount() {
   const el = $("#account");
   if (!Suivi.client) { el.innerHTML = ""; return; }
   el.innerHTML = Suivi.user
-    ? `<span title="Ton suivi est synchronisé">${esc(Suivi.user.email)}</span><button class="btn small ghost" id="logout">Déconnexion</button>`
-    : `<button class="btn" id="login-open">Se connecter</button>`;
+    ? `<span class="acct" title="Ton suivi est synchronisé">${esc(Suivi.user.email)}</span><button class="btn small ghost-l" id="logout">Déconnexion</button>`
+    : `<button class="btn small ghost-l" id="login-open">Se connecter</button>`;
   $("#logout")?.addEventListener("click", () => Suivi.client.auth.signOut());
   $("#login-open")?.addEventListener("click", () => { $("#login-msg").textContent = ""; $("#login").showModal(); });
 }
@@ -268,6 +268,8 @@ const IC = {
   offre: `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M3 13h18"/></svg>`,
   fiche: `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 21V5a2 2 0 0 1 2-2h8l6 6v12a0 0 0 0 1 0 0H6a2 2 0 0 1-2-2Z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></svg>`,
 };
+// couleur du score : vert au-dessus de 55, or entre 35 et 55, gris en dessous
+const scoreCol = s => s >= 55 ? "var(--rec-c)" : s >= 35 ? "var(--accent)" : "var(--fg-3)";
 const domain = u => { try { return new URL(u).hostname.replace(/^www\./, ""); } catch { return ""; } };
 function rowEnt(d) {
   const k = "ent:" + d.id;
@@ -277,14 +279,14 @@ function rowEnt(d) {
     ...(d.t || []).filter(t => /jeune pousse/i.test(t)).map(() => `<span class="tag k-type">Jeune pousse</span>`)].filter(Boolean).join("");
   return `<li class="row${S.cur === k ? " sel" : ""}"${hlAttr(k)} data-k="${k}">
     <button class="r-main" data-open="${k}">
-      <span class="score" style="--s:${d.sc}" data-n="${d.sc}" title="${d.sc} % de compatibilité. On a vu des couples tenir avec moins."></span>
+      <span class="score" style="--s:${d.sc};--sc:${scoreCol(d.sc)}" data-n="${d.sc}" title="${d.sc} % de compatibilité. On a vu des couples tenir avec moins."></span>
       <span class="r-title">${esc(nomAff(d.n))}</span>
       <span class="r-meta"><span>${esc([d.v && `${tc(d.v)}${d.c ? ` (${dept(d.c)})` : ""}`, d.e !== "?" && `${d.e} salariés`, d.w && domain(d.w)].filter(Boolean).join(" · "))}</span></span>
       <span class="r-tags">${tags}</span>
     </button>
     <div class="r-act">
-      ${d.w ? `<a class="btn small c-blue" href="${esc(d.w)}" target="_blank" rel="noopener">${IC.site}Site</a>` : ""}
-      <a class="btn small c-violet" href="${contactUrl(d)}" target="_blank" rel="noopener" title="Chercher ${esc(contactOf(d).label)} sur LinkedIn">${IC.contact}Contact</a>
+      ${d.w ? `<a class="btn small ghost-l" href="${esc(d.w)}" target="_blank" rel="noopener">${IC.site}Site</a>` : ""}
+      <a class="btn small primary" href="${contactUrl(d)}" target="_blank" rel="noopener" title="Chercher ${esc(contactOf(d).label)} sur LinkedIn">${IC.contact}Contact</a>
       ${stSelect(k, nomAff(d.n))}
     </div></li>`;
 }
@@ -299,8 +301,8 @@ function rowOff(x) {
       <span class="r-tags">${tags}</span>
     </button>
     <div class="r-act">
-      <a class="btn small c-blue" href="${esc(x.u)}" target="_blank" rel="noopener">${IC.offre}Voir l'offre</a>
-      ${x.w ? `<a class="btn small c-violet" href="${esc(x.w)}" target="_blank" rel="noopener">${IC.site}Site</a>` : ""}
+      ${x.w ? `<a class="btn small ghost-l" href="${esc(x.w)}" target="_blank" rel="noopener">${IC.site}Site</a>` : ""}
+      <a class="btn small primary" href="${esc(x.u)}" target="_blank" rel="noopener">${IC.offre}Voir l'offre</a>
       ${stSelect(k, labelOf(k))}
     </div></li>`;
 }
@@ -330,7 +332,7 @@ const INTRO = {
     <li>Ne les laisse pas en vu. Pas de réponse après une semaine ? Une relance, c'est charmant. Trois, ça fait peur.</li>
     <li>Alternance : il n'est pas trop tard. Un contrat peut en général commencer jusqu'à 3 mois après la rentrée.</li>
     <li>« Prend des alternants » et « Recrute » : les signaux qui disent qu'elle est libre. Le rond, c'est votre compatibilité sur 100.</li></ul></details>`,
-  off: `<span class="intro-line">CDI : enfin une relation longue durée qui tient ses promesses.</span>
+  off: `<span class="intro-line">CDI : enfin une relation longue durée qui tient ses promesses. Alternance : un pied chez eux, un pied à l'école. Rien de sérieux… pour l'instant.</span>
     <details><summary>Avant de te déclarer</summary><ul>
     <li>Si tu peux, réponds directement sur son site carrières : Adzuna reprend des annonces publiées ailleurs.</li>
     <li>Une annonce de plus de 2 semaines a peut-être déjà trouvé quelqu'un. Les plus fraîches sont marquées.</li>
@@ -377,7 +379,7 @@ function detailEnt(d) {
       <span class="mini-links"><a href="${liPeople(`${n} ${c}`)}" target="_blank" rel="noopener">LinkedIn</a><a href="${g(`"${n}" "${c}"`)}" target="_blank" rel="noopener">Google</a></span></li>`).join("");
   return `<header class="d-head">
       <p class="d-kicker"><span class="tag k-type">${esc(d.s)}</span>${d.lba ? `<span class="tag k-alt">Prend des alternants</span>` : ""}${d.pot ? `<span class="tag k-rec">Recrute</span>` : ""}</p>
-      <div class="d-titlerow"><span class="score" style="--s:${d.sc}" data-n="${d.sc}" title="${d.sc} % de compatibilité. On a vu des couples tenir avec moins."></span>
+      <div class="d-titlerow"><span class="score" style="--s:${d.sc};--sc:${scoreCol(d.sc)}" data-n="${d.sc}" title="${d.sc} % de compatibilité. On a vu des couples tenir avec moins."></span>
         <div><h2 class="d-title">${esc(nomAff(d.n))}</h2>
         <p class="d-meta">${esc([d.v && `${tc(d.v)}${d.c ? ` (${d.c})` : ""}`, d.r, d.e !== "?" && `${d.e} salariés`].filter(Boolean).join(" · "))}${al ? `<br>Aussi connue sous : ${esc(al)}` : ""}</p></div></div>
       <div class="d-actions">
@@ -596,13 +598,27 @@ const ACCROCHES = [
   "Il y a plus de boîtes ici que d'étoiles visibles dans le ciel. Et je les ai toutes rangées pour toi.",
   "Les astronomes appellent ça un amas globulaire. Moi, j'appelle ça 12 950 bonnes raisons de te revoir sourire.",
 ];
-let acc = Math.floor(Math.random() * ACCROCHES.length);
-function showAccroche(next) {
-  if (next) acc = (acc + 1) % ACCROCHES.length;
-  const el = $("#accroche"); el.textContent = ACCROCHES[acc].replaceAll("12 950", fmt(DATA.length || 12950)); el.title = "Clique, j'en ai d'autres";
+let acc = Math.floor(Math.random() * ACCROCHES.length), accTimer = null, accPause = false;
+function showAccroche(i) {
+  acc = (i + ACCROCHES.length) % ACCROCHES.length;
+  const el = $("#accroche");
+  el.classList.add("fade");
+  setTimeout(() => {
+    el.textContent = ACCROCHES[acc].replaceAll("12 950", fmt(DATA.length || 12950));
+    el.classList.remove("fade");
+  }, 220);
+  $("#acc-dots").innerHTML = ACCROCHES.map((_, k) => `<button class="dot${k === acc ? " on" : ""}" data-i="${k}" aria-label="Phrase ${k + 1}"></button>`).join("");
 }
-$("#accroche").addEventListener("click", () => showAccroche(true));
-showAccroche();
+function startAccroches() {
+  clearInterval(accTimer);
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  accTimer = setInterval(() => { if (!accPause && !document.hidden) showAccroche(acc + 1); }, 7000);
+}
+$("#accroche").addEventListener("click", () => { showAccroche(acc + 1); startAccroches(); });
+$("#acc-dots").addEventListener("click", e => { const d = e.target.closest(".dot"); if (d) { showAccroche(+d.dataset.i); startAccroches(); } });
+$(".acc-wrap").addEventListener("mouseenter", () => accPause = true);
+$(".acc-wrap").addEventListener("mouseleave", () => accPause = false);
+showAccroche(acc); startAccroches();
 
 /* ---------- démarrage ---------- */
 fetch("data.json").then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }).then(async j => {

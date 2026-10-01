@@ -10,38 +10,48 @@
 <meta name="description" content="Les boîtes tech qui peuvent t'embaucher : alternance et CDI junior pour profils Bac+5, en Île-de-France, Pays de la Loire et Bretagne.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@800&family=Geist:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="style.css">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230a0d14'/%3E%3Cpath d='M9 22 16 8l7 14' fill='none' stroke='%233b82f6' stroke-width='3.2' stroke-linejoin='round'/%3E%3C/svg%3E">
 </head>
 <body>
+<nav class="topbar" aria-label="Navigation">
+  <div class="tb-in">
+    <a class="logo" href="#boites" aria-label="M13, accueil"><span class="hl">M13</span></a>
+    <div class="views" role="tablist" aria-label="Vue">
+      <button role="tab" class="view" data-view="ent" aria-selected="true">Les boîtes <b id="n-ent"></b></button>
+      <button role="tab" class="view" data-view="off" aria-selected="false">Les offres <b id="n-off"></b></button>
+      <button role="tab" class="view" data-view="suivi" aria-selected="false">Mon suivi <b id="n-suivi"></b></button>
+    </div>
+    <div class="tb-right">
+      <button class="icon-btn theme-btn" id="theme" aria-label="Changer de thème" title="Mode clair / sombre"></button>
+      <div class="account" id="account"></div>
+    </div>
+  </div>
+</nav>
+
 <header class="hero">
   <canvas class="cluster" id="cluster" aria-hidden="true"></canvas>
-  <p class="cluster-cap">M13, l'amas d'Hercule. En 1974, on lui a envoyé un message à 25 000 années-lumière sans savoir si on aurait une réponse. Toi, tu peux bien écrire à une ESN à Levallois.</p>
   <div class="hero-in">
     <div class="hero-text">
       <p class="badge-live"><span></span><em id="maj-badge">Mis à jour aujourd'hui</em></p>
       <h1><span class="hl">M13</span></h1>
-      <p class="tagline" id="accroche">Elles ont toutes envie de toi. Elles ne le savent juste pas encore.</p>
+      <div class="acc-wrap">
+        <p class="tagline" id="accroche" aria-live="polite">Elles ont toutes envie de toi. Elles ne le savent juste pas encore.</p>
+        <div class="acc-dots" id="acc-dots" aria-label="Changer de phrase"></div>
+      </div>
       <p class="sub-tag">Ce site, c'est un peu mon message d'Arecibo : je te l'envoie sans savoir si tu répondras. Dedans, des milliers de boîtes tech entre Paris, Nantes et Rennes, en dev, IA, data, gestion de projet ou ERP. Choisis celle qui te fait de l'effet. Et si tu hésites, je reste dans le coin pour un avis.</p>
-      <p class="pulse" id="pulse"></p>
+      <div class="hero-foot">
+        <a class="btn excel" href="m13.xlsx" download>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0-4.5-4.5M12 15l4.5-4.5M4 20h16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Tout en Excel
+        </a>
+        <p class="pulse" id="pulse"></p>
+      </div>
     </div>
-    <div class="hero-actions">
-      <a class="btn excel" href="m13.xlsx" download>
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0-4.5-4.5M12 15l4.5-4.5M4 20h16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        Tout en Excel
-      </a>
-      <div class="account" id="account"></div>
-      <button class="btn theme-btn" id="theme" aria-label="Changer de thème" title="Mode clair / sombre"></button>
-    </div>
+    <p class="cluster-cap">M13, l'amas d'Hercule. En 1974, on lui a envoyé un message à 25 000 années-lumière sans savoir si on aurait une réponse. Toi, tu peux bien écrire à une ESN à Levallois.</p>
   </div>
 </header>
-
-<nav class="views" role="tablist" aria-label="Vue">
-  <button role="tab" class="view" data-view="ent" aria-selected="true">Les boîtes <b id="n-ent"></b></button>
-  <button role="tab" class="view" data-view="off" aria-selected="false">Les offres <b id="n-off"></b></button>
-  <button role="tab" class="view" data-view="suivi" aria-selected="false">Mon suivi <b id="n-suivi"></b></button>
-</nav>
 
 <div class="layout">
   <main class="results">
