@@ -123,7 +123,10 @@ if __name__ == "__main__":
             idx[(cle_nom(o["entreprise"]), o["region"])].append(o)
 
     rows, used = [], set()
+    n_hors = 0
     for e in ents:
+        if not e["etablissements"]:  # aucun établissement ACTIF dans la région : pas vraiment sur place
+            n_hors += 1; continue
         seg, tags = segment(e, odoo_keys)
         k = cle_nom(e["nom"]); ks = {k} | ({cle_nom(e["sigle"])} if e.get("sigle") else set())
         mo = [o for kk in ks for o in idx.get((kk, e["region"]), [])] + idx_siren.pop((e["siren"], e["region"]), [])
@@ -139,6 +142,7 @@ if __name__ == "__main__":
                      "lbb": lbb.pop((e["siren"], e["region"]), None),
                      "lba": lba_recr.get((e["siren"], e["region"]))})
 
+    print("entreprises sans établissement actif dans la région, écartées :", n_hors)
     # entreprises vues seulement via les offres (DSI d'autres secteurs, groupes…)
     extra = collections.defaultdict(list)
     for key, lst in idx.items():

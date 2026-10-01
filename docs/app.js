@@ -13,7 +13,7 @@ const STATUTS = [["a_contacter", "À contacter"], ["candidate", "Candidaté"], [
 const STATUT = Object.fromEntries(STATUTS);
 
 let DATA = [], OFFRES = [], META = {}, REF = new Date(), ENT_BY_ID = new Map(), OFF_BY_ID = new Map(), ENT_OF_OFF = new Map();
-const S = { view: "ent", q: "", n: PAGE, f: { ent: {}, off: {}, suivi: {} }, tri: { ent: "score", off: "date", suivi: "date" }, cur: null, showAll: {} };
+const S = { view: "ent", q: "", n: PAGE, f: { ent: {}, off: {}, suivi: {} }, tri: { ent: "score", off: "date", suivi: "date" }, cur: null, showAll: {}, closed: new Set() };
 
 /* ---------- utilitaires ---------- */
 const size = tr => !tr ? "?" : tr <= "11" ? "s" : tr <= "31" ? "m" : "l";
@@ -22,6 +22,9 @@ const ago = j => j === null ? "" : j === 0 ? "aujourd'hui" : j === 1 ? "hier" : 
 const kind = x => x.al ? "alt" : /cdi|permanent/i.test(x.k || "") ? "cdi" : "autre";
 const contratLabel = x => ({ alt: "Alternance", cdi: "CDI" }[kind(x)]) || ({ contract: "Contrat", CDD: "CDD" }[x.k] || x.k || "Contrat non précisé");
 const dept = cp => (cp || "").slice(0, 2);
+const DEPTS = { "75": "Paris", "92": "Hauts-de-Seine", "93": "Seine-Saint-Denis", "94": "Val-de-Marne", "78": "Yvelines", "91": "Essonne",
+  "95": "Val-d'Oise", "77": "Seine-et-Marne", "44": "Loire-Atlantique", "49": "Maine-et-Loire", "72": "Sarthe", "85": "Vendée", "53": "Mayenne",
+  "35": "Ille-et-Vilaine", "29": "Finistère", "56": "Morbihan", "22": "Côtes-d'Armor" };
 const clean = n => n.replace(/\(.*?\)/g, "").replace(/\s+/g, " ").trim();
 // « VITAL INGENIERIE » → « Vital Ingenierie » ; garde les sigles (SAS, IT, MP) et les mots avec chiffres
 const PETITS = new Set(["de", "du", "des", "la", "le", "les", "et", "en", "au", "aux", "sur", "sous", "l", "d"]);
@@ -151,7 +154,7 @@ const FACETS = {
     { id: "sig", title: "Ça recrute ?", of: d => [d.lba && "alt", d.pot && "pot", d._o.length && "off", d.w && !d.wp && "site"].filter(Boolean),
       opts: () => [["alt", "Prend des alternants"], ["pot", "Potentiel d'embauche"], ["off", "A des offres en ce moment"], ["site", "Site vérifié"]] },
     { id: "taille", title: "Taille", of: d => [size(d.tr)], opts: () => [["s", "Petite (3 à 19)"], ["m", "Moyenne (20 à 249)"], ["l", "Grosse (250 et plus)"], ["?", "Taille inconnue"]] },
-    { id: "dep", title: "Département", of: d => [dept(d.c)], opts: () => uniqCount(DATA.map(d => dept(d.c)).filter(Boolean)), limit: 6 },
+    { id: "dep", title: "Département", of: d => [DEPTS[dept(d.c)] ? dept(d.c) : "?"], opts: () => [...Object.entries(DEPTS).map(([k, n]) => [k, `${k} · ${n}`]), ["?", "Non précisé"]] },
   ],
   off: [
     { id: "fam", title: "Type de poste", of: x => [x.f], opts: () => META.familles.map(f => [f, f]) },
@@ -183,13 +186,12 @@ function renderFacets() {
   $("#facets").innerHTML = FACETS[S.view].map(f => {
     const counts = new Map();
     for (const it of all) if (matches(it, f.id)) for (const v of f.of(it)) counts.set(v, (counts.get(v) || 0) + 1);
-    const opts = f.opts(), sel = cur[f.id] || new Set();
-    const lim = f.limit && !S.showAll[S.view + f.id] ? f.limit : Infinity;
-    const shown = opts.filter((o, i) => i < lim || sel.has(o[0]));
-    return `<section class="facet"><h3>${esc(f.title)}</h3>${shown.map(([v, l]) => {
-      const n = counts.get(v) || 0;
-      return `<label class="opt${n ? "" : " zero"}"><input type="checkbox" data-f="${f.id}" value="${esc(v)}"${sel.has(v) ? " checked" : ""}><span>${esc(l)}</span><i>${fmt(n)}</i></label>`;
-    }).join("")}${opts.length > shown.length ? `<button class="more-opts" data-all="${f.id}">Voir les ${opts.length}</button>` : ""}</section>`;
+    const sel = cur[f.id] || new Set(), closed = S.closed.has(S.view + f.id);
+    const opts = f.opts().filter(([v]) => counts.get(v) || sel.has(v));  // on cache les options vides
+    return `<section class="facet${closed ? " closed" : ""}">
+      <button class="facet-h" data-toggle="${f.id}" aria-expanded="${!closed}"><span>${esc(f.title)}</span>${sel.size ? `<b>${sel.size}</b>` : ""}<i aria-hidden="true"></i></button>
+      <div class="chips">${opts.map(([v, l]) => `<button class="chip" data-f="${f.id}" data-v="${esc(v)}" aria-pressed="${sel.has(v)}">${esc(l)}<i>${fmt(counts.get(v) || 0)}</i></button>`).join("")}</div>
+    </section>`;
   }).join("");
   const nSel = Object.values(cur).reduce((a, s) => a + (s ? s.size : 0), 0) + (S.q ? 1 : 0);
   $("#clear").hidden = !nSel; $("#n-filters").textContent = nSel ? `(${nSel})` : "";
@@ -415,8 +417,12 @@ function openItem(k, keepScroll) {
 function closeItem() { $("#drawer").hidden = true; $("#scrim").hidden = true; S.cur = null; document.querySelectorAll(".row.sel").forEach(r => r.classList.remove("sel")); }
 
 /* ---------- événements ---------- */
+function sheet(open) {  // panneau de filtres sur téléphone
+  $("#side").classList.toggle("open", open); $("#side-scrim").hidden = !open;
+  document.documentElement.classList.toggle("locked", open);
+}
 function setView(v) {
-  S.view = v; S.n = PAGE; closeItem(); $("#side").classList.remove("open");
+  S.view = v; S.n = PAGE; closeItem(); sheet(false);
   document.querySelectorAll(".view").forEach(b => b.setAttribute("aria-selected", b.dataset.view === v));
   $("#intro").innerHTML = INTRO[v];
   $("#tri").innerHTML = TRIS[v].map(([k, l]) => `<option value="${k}"${S.tri[v] === k ? " selected" : ""}>${l}</option>`).join("");
@@ -435,19 +441,21 @@ let noteTimer;
 function bind() {
   document.querySelectorAll(".view").forEach(b => b.addEventListener("click", () => setView(b.dataset.view)));
   let t; $("#q").addEventListener("input", e => { clearTimeout(t); t = setTimeout(() => { S.q = norm(e.target.value.trim()); S.n = PAGE; render(); }, 150); });
-  $("#facets").addEventListener("change", e => {
-    const f = e.target.dataset.f; if (!f) return;
-    const cur = S.f[S.view]; cur[f] = cur[f] || new Set();
-    e.target.checked ? cur[f].add(e.target.value) : cur[f].delete(e.target.value);
+  $("#facets").addEventListener("click", e => {
+    const tg = e.target.closest("[data-toggle]");
+    if (tg) { const k = S.view + tg.dataset.toggle; S.closed.has(k) ? S.closed.delete(k) : S.closed.add(k); renderFacets(); return; }
+    const ch = e.target.closest(".chip"); if (!ch) return;
+    const cur = S.f[S.view], f = ch.dataset.f; cur[f] = cur[f] || new Set();
+    cur[f].has(ch.dataset.v) ? cur[f].delete(ch.dataset.v) : cur[f].add(ch.dataset.v);
     S.n = PAGE; render();
   });
-  $("#facets").addEventListener("click", e => { const f = e.target.dataset.all; if (f) { S.showAll[S.view + f] = true; renderFacets(); } });
   $("#clear").addEventListener("click", () => { S.f[S.view] = {}; S.q = ""; $("#q").value = ""; S.n = PAGE; render(); });
   $("#tri").addEventListener("change", e => { S.tri[S.view] = e.target.value; S.n = PAGE; render(); });
   $("#more").addEventListener("click", () => { S.n += PAGE * 2; render(); });
-  $("#open-side").addEventListener("click", () => $("#side").classList.add("open"));
-  $("#close-side").addEventListener("click", () => $("#side").classList.remove("open"));
-  $("#see-results").addEventListener("click", () => { $("#side").classList.remove("open"); window.scrollTo(0, 0); });
+  $("#open-side").addEventListener("click", () => sheet(true));
+  $("#close-side").addEventListener("click", () => sheet(false));
+  $("#side-scrim").addEventListener("click", () => sheet(false));
+  $("#see-results").addEventListener("click", () => { sheet(false); $(".toolbar").scrollIntoView({ block: "start" }); });
   $(".toolbar").insertAdjacentHTML("beforeend", `<button class="btn small" id="export" hidden>Exporter mon suivi</button>`);
   $("#export").addEventListener("click", exportSuivi);
   // statut rapide sur une ligne
