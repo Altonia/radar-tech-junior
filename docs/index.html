@@ -41,26 +41,22 @@
   <button role="tab" class="view" data-view="suivi" aria-selected="false">Mon suivi <b id="n-suivi"></b></button>
 </nav>
 
-<div class="side-scrim" id="side-scrim" hidden></div>
 <div class="layout">
-  <aside class="side" id="side" aria-label="Filtres">
-    <div class="side-head">
-      <span>Affiner</span>
-      <button class="link" id="clear" hidden>Tout effacer</button>
-      <button class="icon-btn close-side" id="close-side" aria-label="Fermer les filtres">×</button>
-    </div>
-    <label class="search">
-      <span class="sr">Rechercher</span>
-      <input type="search" id="q" autocomplete="off">
-    </label>
-    <div id="facets"></div>
-    <button class="btn primary only-mobile see-results" id="see-results">Voir les résultats</button>
-  </aside>
-
   <main class="results">
     <div class="intro" id="intro"></div>
+    <div class="filterbar">
+      <label class="search">
+        <span class="sr">Rechercher</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+        <input type="search" id="q" autocomplete="off">
+      </label>
+      <div class="quick" id="quick"></div>
+      <button class="btn more-filters" id="open-side" aria-label="Plus de filtres">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
+        <span class="mf-label">Plus de filtres</span> <b id="n-filters"></b></button>
+    </div>
+    <div class="active" id="active"></div>
     <div class="toolbar">
-      <button class="btn only-mobile" id="open-side">Filtres <b id="n-filters"></b></button>
       <span class="count" id="count"></span>
       <select id="tri" aria-label="Trier"></select>
     </div>
@@ -75,6 +71,12 @@
   <button class="icon-btn close-drawer" id="close-drawer" aria-label="Fermer">×</button>
   <div id="detail"></div>
 </aside>
+
+<dialog class="fmodal" id="side" aria-label="Tous les filtres">
+  <div class="fm-head"><h2>Tous les filtres</h2><button class="icon-btn" id="close-side" aria-label="Fermer">×</button></div>
+  <div class="fm-body" id="facets"></div>
+  <div class="fm-foot"><button class="btn ghost" id="clear">Tout effacer</button><button class="btn primary" id="see-results">Voir les résultats</button></div>
+</dialog>
 
 <dialog class="login" id="login">
   <form method="dialog" id="login-form">

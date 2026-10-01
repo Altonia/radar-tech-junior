@@ -13,7 +13,7 @@ const STATUTS = [["a_contacter", "À contacter"], ["candidate", "Candidaté"], [
 const STATUT = Object.fromEntries(STATUTS);
 
 let DATA = [], OFFRES = [], META = {}, REF = new Date(), ENT_BY_ID = new Map(), OFF_BY_ID = new Map(), ENT_OF_OFF = new Map();
-const S = { view: "ent", q: "", n: PAGE, f: { ent: {}, off: {}, suivi: {} }, tri: { ent: "score", off: "date", suivi: "date" }, cur: null, showAll: {}, closed: new Set() };
+const S = { view: "ent", q: "", n: PAGE, f: { ent: {}, off: {}, suivi: {} }, tri: { ent: "score", off: "date", suivi: "date" }, cur: null, showAll: {}, closed: new Set(), pop: null };
 
 /* ---------- utilitaires ---------- */
 const size = tr => !tr ? "?" : tr <= "11" ? "s" : tr <= "31" ? "m" : "l";
@@ -194,9 +194,40 @@ function renderFacets() {
     </section>`;
   }).join("");
   const nSel = Object.values(cur).reduce((a, s) => a + (s ? s.size : 0), 0) + (S.q ? 1 : 0);
-  $("#clear").hidden = !nSel; $("#n-filters").textContent = nSel ? `(${nSel})` : "";
+  $("#clear").disabled = !nSel;
+  const nMore = FACETS[S.view].slice(QUICK).reduce((a, f) => a + (cur[f.id]?.size || 0), 0);
+  $("#n-filters").textContent = nMore ? nMore : "";
+  renderQuick(); renderActive();
   const nRes = all.filter(it => matches(it)).length;
   $("#see-results").textContent = `Voir les ${fmt(nRes)} résultat${nRes > 1 ? "s" : ""}`;
+}
+
+// barre du haut : les 3 premiers filtres en menus déroulants de pastilles
+const QUICK = 3;
+function chipsOf(f) {
+  const all = items(), cur = S.f[S.view], sel = cur[f.id] || new Set(), counts = new Map();
+  for (const it of all) if (matches(it, f.id)) for (const v of f.of(it)) counts.set(v, (counts.get(v) || 0) + 1);
+  return f.opts().filter(([v]) => counts.get(v) || sel.has(v))
+    .map(([v, l]) => `<button class="chip" data-f="${f.id}" data-v="${esc(v)}" aria-pressed="${sel.has(v)}">${esc(l)}<i>${fmt(counts.get(v) || 0)}</i></button>`).join("");
+}
+function renderQuick() {
+  const cur = S.f[S.view];
+  $("#quick").innerHTML = FACETS[S.view].slice(0, QUICK).map(f => {
+    const n = cur[f.id]?.size || 0, open = S.pop === f.id;
+    const one = n === 1 ? (f.opts().find(o => cur[f.id].has(o[0])) || [, ""])[1] : "";
+    return `<div class="qf-wrap"><button class="qf${n ? " on" : ""}" data-pop="${f.id}" aria-expanded="${open}">
+        <span>${esc(one || f.title)}</span>${n > 1 ? `<b>${n}</b>` : ""}<i aria-hidden="true"></i></button>
+      ${open ? `<div class="pop" role="dialog" aria-label="${esc(f.title)}"><div class="chips">${chipsOf(f)}</div>
+        ${n ? `<button class="link" data-clear-f="${f.id}">Effacer</button>` : ""}</div>` : ""}</div>`;
+  }).join("");
+}
+function renderActive() {
+  const cur = S.f[S.view], pills = [];
+  for (const f of FACETS[S.view]) for (const v of cur[f.id] || []) {
+    const l = (f.opts().find(o => o[0] === v) || [, v])[1];
+    pills.push(`<button class="apill" data-f="${f.id}" data-v="${esc(v)}" aria-label="Retirer ${esc(l)}">${esc(l)}<span aria-hidden="true">×</span></button>`);
+  }
+  $("#active").innerHTML = pills.length ? pills.join("") + (pills.length > 1 ? `<button class="link" id="clear-all">Tout effacer</button>` : "") : "";
 }
 
 /* ---------- liste ---------- */
@@ -417,8 +448,10 @@ function openItem(k, keepScroll) {
 function closeItem() { $("#drawer").hidden = true; $("#scrim").hidden = true; S.cur = null; document.querySelectorAll(".row.sel").forEach(r => r.classList.remove("sel")); }
 
 /* ---------- événements ---------- */
-function sheet(open) {  // panneau de filtres sur téléphone
-  $("#side").classList.toggle("open", open); $("#side-scrim").hidden = !open;
+function sheet(open) {  // fenêtre « tous les filtres »
+  const d = $("#side");
+  if (open && !d.open) { S.pop = null; renderQuick(); d.showModal(); }
+  if (!open && d.open) d.close();
   document.documentElement.classList.toggle("locked", open);
 }
 function setView(v) {
@@ -441,20 +474,36 @@ let noteTimer;
 function bind() {
   document.querySelectorAll(".view").forEach(b => b.addEventListener("click", () => setView(b.dataset.view)));
   let t; $("#q").addEventListener("input", e => { clearTimeout(t); t = setTimeout(() => { S.q = norm(e.target.value.trim()); S.n = PAGE; render(); }, 150); });
-  $("#facets").addEventListener("click", e => {
-    const tg = e.target.closest("[data-toggle]");
-    if (tg) { const k = S.view + tg.dataset.toggle; S.closed.has(k) ? S.closed.delete(k) : S.closed.add(k); renderFacets(); return; }
-    const ch = e.target.closest(".chip"); if (!ch) return;
+  const toggleChip = ch => {
     const cur = S.f[S.view], f = ch.dataset.f; cur[f] = cur[f] || new Set();
     cur[f].has(ch.dataset.v) ? cur[f].delete(ch.dataset.v) : cur[f].add(ch.dataset.v);
     S.n = PAGE; render();
+  };
+  $("#facets").addEventListener("click", e => {
+    const tg = e.target.closest("[data-toggle]");
+    if (tg) { const k = S.view + tg.dataset.toggle; S.closed.has(k) ? S.closed.delete(k) : S.closed.add(k); renderFacets(); return; }
+    const ch = e.target.closest(".chip"); if (ch) toggleChip(ch);
   });
-  $("#clear").addEventListener("click", () => { S.f[S.view] = {}; S.q = ""; $("#q").value = ""; S.n = PAGE; render(); });
+  $("#quick").addEventListener("click", e => {
+    const b = e.target.closest("[data-pop]");
+    if (b) { S.pop = S.pop === b.dataset.pop ? null : b.dataset.pop; renderQuick(); return; }
+    const ch = e.target.closest(".chip"); if (ch) { toggleChip(ch); return; }
+    const cl = e.target.closest("[data-clear-f]"); if (cl) { delete S.f[S.view][cl.dataset.clearF]; S.n = PAGE; render(); }
+  });
+  document.addEventListener("click", e => { if (S.pop && !e.target.closest(".qf-wrap")) { S.pop = null; renderQuick(); } });
+  document.addEventListener("keydown", e => { if (e.key === "Escape" && S.pop) { S.pop = null; renderQuick(); } });
+  $("#active").addEventListener("click", e => {
+    if (e.target.closest("#clear-all")) { S.f[S.view] = {}; S.n = PAGE; render(); return; }
+    const p = e.target.closest(".apill"); if (!p) return;
+    S.f[S.view][p.dataset.f]?.delete(p.dataset.v); S.n = PAGE; render();
+  });
+  $("#clear").addEventListener("click", () => { S.f[S.view] = {}; S.n = PAGE; render(); });
   $("#tri").addEventListener("change", e => { S.tri[S.view] = e.target.value; S.n = PAGE; render(); });
   $("#more").addEventListener("click", () => { S.n += PAGE * 2; render(); });
   $("#open-side").addEventListener("click", () => sheet(true));
   $("#close-side").addEventListener("click", () => sheet(false));
-  $("#side-scrim").addEventListener("click", () => sheet(false));
+  $("#side").addEventListener("close", () => document.documentElement.classList.remove("locked"));
+  $("#side").addEventListener("click", e => { if (e.target === $("#side")) sheet(false); });  // clic hors de la fenêtre
   $("#see-results").addEventListener("click", () => { sheet(false); $(".toolbar").scrollIntoView({ block: "start" }); });
   $(".toolbar").insertAdjacentHTML("beforeend", `<button class="btn small" id="export" hidden>Exporter mon suivi</button>`);
   $("#export").addEventListener("click", exportSuivi);
