@@ -544,3 +544,9 @@ h1 { font-size: clamp(64px, 11vw, 132px); margin: 0 0 22px; }
   .acct { display: none; }
 }
 @media (max-width: 900px) { .cluster { opacity: .3 !important; top: 14% !important; right: -150px !important; } }
+
+/* bouton secondaire : visible (contour), mais moins que l'action principale dorée */
+.btn.small.second { background: transparent; color: var(--fg); border: 1.5px solid var(--line-2); }
+.btn.small.second:hover { border-color: var(--accent); color: var(--accent); background: transparent; }
+.btn.small.second .ic { color: var(--fg-2); }
+.btn.small.second:hover .ic { color: var(--accent); }

@@ -285,8 +285,8 @@ function rowEnt(d) {
       <span class="r-tags">${tags}</span>
     </button>
     <div class="r-act">
-      ${d.w ? `<a class="btn small ghost-l" href="${esc(d.w)}" target="_blank" rel="noopener">${IC.site}Site</a>` : ""}
-      <a class="btn small primary" href="${contactUrl(d)}" target="_blank" rel="noopener" title="Chercher ${esc(contactOf(d).label)} sur LinkedIn">${IC.contact}Contact</a>
+      ${d.w ? `<a class="btn small primary" href="${esc(d.w)}" target="_blank" rel="noopener">${IC.site}Site</a>` : ""}
+      <a class="btn small ${d.w ? "second" : "primary"}" href="${contactUrl(d)}" target="_blank" rel="noopener" title="Chercher ${esc(contactOf(d).label)} sur LinkedIn">${IC.contact}Contact</a>
       ${stSelect(k, nomAff(d.n))}
     </div></li>`;
 }
